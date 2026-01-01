@@ -6,7 +6,6 @@ export const IngredientSelect = ({ value, onChange }) => {
     const [options, setOptions] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
 
-    // 1. Cargar ingredientes al montar
     useEffect(() => {
         loadIngredients();
     }, []);
@@ -14,34 +13,41 @@ export const IngredientSelect = ({ value, onChange }) => {
     const loadIngredients = async () => {
         try {
             const res = await api.get('ingredients/');
-            // React-Select necesita el formato { value: id, label: nombre }
             const formatted = res.data.map(i => ({ value: i.id, label: i.name }));
             setOptions(formatted);
         } catch (error) {
-            console.error("Error cargando ingredientes", error);
+            console.error("Error cargando ingredientes:", error);
         }
     };
 
-    // 2. Lógica para crear uno nuevo al vuelo
     const handleCreate = async (inputValue) => {
+        console.log("Intentando crear:", inputValue); // <--- LOG 1
         setIsLoading(true);
         try {
-            // POST al backend para crear el ingrediente
+            // Enviamos solo el nombre (el backend pone el usuario)
             const res = await api.post('ingredients/', { name: inputValue });
 
+            console.log("Respuesta del servidor:", res.data); // <--- LOG 2
+
+            // Creamos la opción para el select
             const newOption = { value: res.data.id, label: res.data.name };
 
-            // Actualizamos la lista local y seleccionamos el nuevo
+            // IMPORTANTE: Actualizamos la lista local INMEDIATAMENTE
             setOptions((prev) => [...prev, newOption]);
-            onChange(res.data.id); // Avisamos al padre del nuevo ID
+
+            // Avisamos al padre del nuevo ID
+            onChange(res.data.id);
+
         } catch (error) {
-            alert("Error creando ingrediente. Quizás ya existe.");
+            // Si falla, queremos saber por qué (puede ser un error 400 de validación)
+            console.error("Error CREANDO ingrediente:", error.response?.data || error.message);
+            alert("Error al crear. Mira la consola (F12) para más detalles.");
         } finally {
             setIsLoading(false);
         }
     };
 
-    // Buscamos el objeto completo para que el Select sepa cuál mostrar
+    // Buscamos la opción seleccionada
     const currentOption = options.find(op => op.value === value);
 
     return (
@@ -53,7 +59,7 @@ export const IngredientSelect = ({ value, onChange }) => {
             onCreateOption={handleCreate}
             options={options}
             value={currentOption}
-            placeholder="Busca o escribe para crear..."
+            placeholder="Busca o escribe..."
             formatCreateLabel={(inputValue) => `Crear "${inputValue}"`}
             className="text-sm"
         />

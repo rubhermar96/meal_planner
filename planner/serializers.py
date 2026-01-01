@@ -9,7 +9,25 @@ class DailyPlanSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DailyPlan
-        fields = ['id', 'date', 'group', 'meal', 'meal_details', 'target_servings', 'meal_slot']
+        fields = ['id', 'date', 'group', 'meal', 'meal_details', 'target_servings', 'meal_slot', 'is_eating_out', 'custom_name']
+        extra_kwargs = {
+            'meal': {'required': False, 'allow_null': True}
+        }
+
+    def validate(self, data):
+        meal = data.get('meal')
+        is_eating_out = data.get('is_eating_out')
+        custom_name = data.get('custom_name')
+
+        # Lógica de validación: O hay receta, O es comer fuera
+        if not meal and not is_eating_out:
+            raise serializers.ValidationError("Debes seleccionar una receta o indicar que comes fuera.")
+        
+        # Si es comer fuera, el nombre es obligatorio
+        if is_eating_out and not custom_name:
+            raise serializers.ValidationError("Si comes fuera, debes indicar el nombre del sitio.")
+
+        return data
 
 class ShoppingListItemSerializer(serializers.ModelSerializer):
     class Meta:

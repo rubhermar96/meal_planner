@@ -1,9 +1,14 @@
 import { useState } from 'react';
 import api from '../api/axios';
 import { useWeeklyCalendar } from '../hooks/useWeeklyCalendar'; // Reutilizamos tu hook para formatear fechas
+import { useAuth } from '../context/AuthContext';
+
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import { ShoppingListPDF } from '../components/ShoppingListPDF';
 
 export const ShoppingListPage = () => {
     const { startDate, endDate, format } = useWeeklyCalendar(); // Valores por defecto (semana actual)
+    const { activeGroup } = useAuth();
 
     // Estado local para el formulario de fechas (inicializado a la semana actual)
     const [dates, setDates] = useState({
@@ -20,7 +25,7 @@ export const ShoppingListPage = () => {
             const res = await api.post('shopping-lists/generate/', {
                 start_date: dates.start,
                 end_date: dates.end,
-                group_id: 1
+                group_id: activeGroup?.id
             });
             setShoppingList(res.data);
         } catch (error) {
@@ -86,6 +91,21 @@ export const ShoppingListPage = () => {
                             Del {dates.start} al {dates.end}
                         </span>
                     </div>
+
+                    <PDFDownloadLink
+                        document={
+                            <ShoppingListPDF
+                                shoppingList={shoppingList}
+                                groupName={activeGroup?.name || "Mi Grupo"}
+                            />
+                        }
+                        fileName={`Compra_${shoppingList.start_date}.pdf`}
+                        className="flex items-center gap-2 bg-white border border-green-200 text-green-700 hover:bg-green-100 px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition decoration-none"
+                    >
+                        {({ blob, url, loading, error }) =>
+                            loading ? 'Generando PDF...' : '📄 Descargar PDF (Cliente)'
+                        }
+                    </PDFDownloadLink>
 
                     <div className="divide-y divide-gray-100">
                         {shoppingList.items.map((item) => (

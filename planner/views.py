@@ -12,6 +12,14 @@ class DailyPlanViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         queryset = super().get_queryset()
+        # Filtro de seguridad: Solo mis grupos
+        queryset = queryset.filter(group__members=self.request.user)
+
+        # Filtro específico si el frontend manda ?group=5
+        group_id = self.request.query_params.get('group')
+        if group_id:
+            queryset = queryset.filter(group_id=group_id)
+
         start_date = self.request.query_params.get('start_date')
         end_date = self.request.query_params.get('end_date')
         if start_date and end_date:

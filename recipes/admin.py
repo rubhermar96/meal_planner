@@ -13,7 +13,7 @@ class IngredientAdmin(admin.ModelAdmin):
 
 @admin.register(Meal)
 class MealAdmin(admin.ModelAdmin):
-    list_display = ('name', 'meal_type', 'base_servings', 'group')
-    list_filter = ('meal_type', 'group')
+    list_display = ('name', 'meal_type', 'base_servings', 'user')
+    list_filter = ('meal_type', 'user')
     search_fields = ('name',)
     inlines = [RecipeIngredientInline] # <--- Esto activa la magia

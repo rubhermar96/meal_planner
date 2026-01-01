@@ -14,7 +14,7 @@ class DailyPlan(models.Model):
     ]
     group = models.ForeignKey(PlanningGroup, on_delete=models.CASCADE, related_name='plans')
     date = models.DateField(verbose_name="Fecha de consumo")
-    meal = models.ForeignKey(Meal, on_delete=models.CASCADE)
+    meal = models.ForeignKey(Meal, on_delete=models.CASCADE, null=True, blank=True)
 
     meal_slot = models.CharField(
         max_length=20, 
@@ -22,6 +22,9 @@ class DailyPlan(models.Model):
         default='LUNCH', # Por defecto que sea comida
         verbose_name="Franja horaria"
     )
+
+    custom_name = models.CharField(max_length=200, null=True, blank=True)
+    is_eating_out = models.BooleanField(default=False)
     
     # CLAVE DEL PROYECTO:
     # Aquí definimos para cuántas personas es la comida ESTE día.

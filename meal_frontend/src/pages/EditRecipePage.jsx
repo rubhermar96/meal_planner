@@ -1,24 +1,58 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import api from "../api/axios";
-import { IngredientSelect } from "../components/IngredientSelect"; // <--- Importamos
+import { IngredientSelect } from "../components/IngredientSelect"; // Usamos tu componente
 import { useAuth } from '../context/AuthContext';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
-export const CreateRecipePage = () => {
+export const EditRecipePage = () => {
+    const { id } = useParams();
     const navigate = useNavigate();
-    const { activeGroup } = useAuth();
 
-    // Estado del formulario
+    // Estados del formulario (Igual que en Create)
+    const [loading, setLoading] = useState(true);
     const [name, setName] = useState("");
     const [baseServings, setBaseServings] = useState(4);
-    const [ingredients, setIngredients] = useState([
-        { ingredient_id: "", quantity: "", unit: "g" }
-    ]);
-    const [instructions, setInstructions] = useState(""); // Estado para texto
-    const [selectedImage, setSelectedImage] = useState(null); // Estado para el archivo (visualización)
-    const [imageBase64, setImageBase64] = useState("");
+    const [ingredients, setIngredients] = useState([]);
+    const [instructions, setInstructions] = useState("");
 
-    // NOTA: He borrado el useEffect de availableIngredients, ya no hace falta aquí.
+    // Estados para imagen
+    const [currentImageUrl, setCurrentImageUrl] = useState(null); // URL actual (Cloudinary/Local)
+    const [previewImage, setPreviewImage] = useState(null);       // Preview si subes una nueva
+    const [newImageBase64, setNewImageBase64] = useState(null);   // Base64 para enviar si cambia
+
+    // 1. CARGAR DATOS AL INICIAR
+    useEffect(() => {
+        const loadRecipe = async () => {
+            try {
+                const res = await api.get(`meals/${id}/`);
+                const meal = res.data;
+
+                setName(meal.name);
+                setBaseServings(meal.base_servings);
+                setInstructions(meal.instructions || "");
+                setCurrentImageUrl(meal.image);
+
+                // MAPEO CRÍTICO: Backend devuelve { ingredient: ID } -> Frontend espera { ingredient_id: ID }
+                const formattedIngredients = meal.ingredients.map(ing => ({
+                    ingredient_id: ing.ingredient,
+                    quantity: ing.quantity,
+                    unit: ing.unit
+                }));
+                setIngredients(formattedIngredients);
+
+            } catch (error) {
+                console.error("Error cargando receta", error);
+                alert("No se pudo cargar la receta.");
+                navigate('/recipes');
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadRecipe();
+    }, [id, navigate]);
+
+    // --- MISMOS MANEJADORES QUE EN CREATE ---
 
     const addRow = () => {
         setIngredients([...ingredients, { ingredient_id: "", quantity: "", unit: "g" }]);
@@ -36,15 +70,13 @@ export const CreateRecipePage = () => {
         setIngredients(newList);
     };
 
-    // Función para convertir archivo a Base64
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            setSelectedImage(URL.createObjectURL(file)); // Para previsualizar
-
+            setPreviewImage(URL.createObjectURL(file)); // Preview local
             const reader = new FileReader();
             reader.onloadend = () => {
-                setImageBase64(reader.result); // Esto es lo que enviaremos a Django
+                setNewImageBase64(reader.result); // Guardamos el Base64 nuevo
             };
             reader.readAsDataURL(file);
         }
@@ -53,48 +85,60 @@ export const CreateRecipePage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            // 1. Validamos ingredientes
+            // 1. Validar
             const validIngredients = ingredients.filter(i => i.ingredient_id && i.quantity);
-
             if (validIngredients.length === 0) {
                 alert("Añade al menos un ingrediente");
                 return;
             }
 
-            // 2. Preparamos los ingredientes
+            // 2. Mapear para el Backend
             const ingredientsPayload = validIngredients.map(i => ({
                 ingredient: i.ingredient_id,
                 quantity: i.quantity,
                 unit: i.unit
             }));
 
-            // 3. Creamos el objeto base SIN LA IMAGEN
             const payload = {
                 name,
                 base_servings: parseInt(baseServings),
                 meal_type: "HOME",
                 ingredients: ingredientsPayload,
-                instructions: instructions
+                instructions: instructions,
+                // NOTA: No enviamos 'image' aquí todavía
             };
 
-            // 4. LÓGICA CONDICIONAL: Solo añadimos la imagen si el usuario subió una
-            if (imageBase64) {
-                payload.image = imageBase64;
+            // Lógica de Imagen: Solo enviamos el campo si hay una NUEVA imagen
+            if (newImageBase64) {
+                payload.image = newImageBase64;
             }
 
-            await api.post("meals/", payload);
-            navigate("/recipes");
+            // 3. Enviar PUT
+            await api.put(`meals/${id}/`, payload);
+            navigate(`/recipes/${id}`); // Volver al detalle
+
         } catch (error) {
             console.error(error);
-            alert("Error creando receta: " + JSON.stringify(error.response?.data));
+            alert("Error editando receta: " + JSON.stringify(error.response?.data));
         }
     };
 
+    if (loading) return <div className="p-10 text-center">Cargando...</div>;
+
     return (
-        <div className="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-md border border-gray-200 mt-6">
-            <h1 className="text-2xl font-bold mb-6 text-gray-800">🍳 Nueva Receta</h1>
+        <div className="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-md border border-gray-200 mt-6 pb-20">
+
+            {/* Cabecera con botón volver */}
+            <div className="flex items-center gap-4 mb-6">
+                <button onClick={() => navigate(-1)} className="text-gray-500 hover:text-blue-600">
+                    <ArrowLeftIcon className="w-6 h-6" />
+                </button>
+                <h1 className="text-2xl font-bold text-gray-800">✏️ Editar Receta</h1>
+            </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
+
+                {/* NOMBRE Y RACIONES */}
                 <div className="grid grid-cols-3 gap-4">
                     <div className="col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del Plato</label>
@@ -104,7 +148,6 @@ export const CreateRecipePage = () => {
                             value={name}
                             onChange={e => setName(e.target.value)}
                             className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
-                            placeholder="Ej: Lentejas estofadas"
                         />
                     </div>
                     <div>
@@ -117,33 +160,44 @@ export const CreateRecipePage = () => {
                         />
                     </div>
                 </div>
-                {/* NUEVO: IMAGEN */}
+
+                {/* IMAGEN (Con lógica de preview de edición) */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Foto del plato</label>
                     <div className="flex items-start gap-4">
                         <div className="w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center overflow-hidden bg-gray-50 relative">
-                            {selectedImage ? (
-                                <img src={selectedImage} alt="Preview" className="w-full h-full object-cover" />
+                            {(previewImage || currentImageUrl) ? (
+                                <img
+                                    src={previewImage || currentImageUrl}
+                                    alt="Preview"
+                                    className="w-full h-full object-cover"
+                                />
                             ) : (
                                 <span className="text-gray-400 text-xs text-center px-2">Sin imagen</span>
                             )}
                         </div>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageChange}
-                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                        />
+                        <div className="flex-1">
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageChange}
+                                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                            />
+                            <p className="text-xs text-gray-500 mt-2">
+                                Sube una foto solo si quieres cambiar la actual.
+                            </p>
+                        </div>
                     </div>
                 </div>
 
+                {/* INGREDIENTES (USANDO TU COMPONENTE IngredientSelect) */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Ingredientes</label>
                     <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
                         {ingredients.map((row, index) => (
                             <div key={index} className="flex gap-2 items-start">
 
-                                {/* AQUI ESTÁ EL CAMBIO: Usamos nuestro componente */}
+                                {/* Componente Reuse */}
                                 <div className="flex-1">
                                     <IngredientSelect
                                         value={row.ingredient_id}
@@ -157,9 +211,10 @@ export const CreateRecipePage = () => {
                                     placeholder="Cant."
                                     value={row.quantity}
                                     onChange={(e) => handleIngredientChange(index, "quantity", e.target.value)}
-                                    className="w-20 border border-gray-300 rounded p-2 text-sm h-[38px]" // Altura ajustada para igualar al select
+                                    className="w-20 border border-gray-300 rounded p-2 text-sm h-[38px]"
                                 />
 
+                                {/* Selector de Unidades idéntico al de Create */}
                                 <select
                                     value={row.unit}
                                     onChange={(e) => handleIngredientChange(index, "unit", e.target.value)}
@@ -194,7 +249,7 @@ export const CreateRecipePage = () => {
                     </div>
                 </div>
 
-                {/* NUEVO: INSTRUCCIONES (TEXTAREA) */}
+                {/* INSTRUCCIONES */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Pasos de la Receta</label>
                     <textarea
@@ -204,22 +259,22 @@ export const CreateRecipePage = () => {
                         rows={6}
                         className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none whitespace-pre-wrap"
                     />
-                    <p className="text-xs text-gray-500 mt-1">Puedes usar espacios y saltos de línea.</p>
                 </div>
 
+                {/* BOTONES */}
                 <div className="flex justify-end gap-3 pt-4">
                     <button
                         type="button"
-                        onClick={() => navigate("/recipes")}
-                        className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                        onClick={() => navigate(`/recipes/${id}`)}
+                        className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg border border-transparent hover:border-gray-300 transition"
                     >
                         Cancelar
                     </button>
                     <button
                         type="submit"
-                        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow"
+                        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow transition"
                     >
-                        Guardar Receta
+                        Guardar Cambios
                     </button>
                 </div>
             </form>
