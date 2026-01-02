@@ -15,9 +15,15 @@ class DailyPlanSerializer(serializers.ModelSerializer):
         }
 
     def validate(self, data):
-        meal = data.get('meal')
-        is_eating_out = data.get('is_eating_out')
-        custom_name = data.get('custom_name')
+        # Si estamos editando (PATCH/PUT), usamos valores de la instancia si no vienen en data
+        if self.instance:
+            meal = data.get('meal', self.instance.meal)
+            is_eating_out = data.get('is_eating_out', self.instance.is_eating_out)
+            custom_name = data.get('custom_name', self.instance.custom_name)
+        else:
+            meal = data.get('meal')
+            is_eating_out = data.get('is_eating_out')
+            custom_name = data.get('custom_name')
 
         # Lógica de validación: O hay receta, O es comer fuera
         if not meal and not is_eating_out:
@@ -57,7 +63,8 @@ class ShoppingListSerializer(serializers.ModelSerializer):
         # 1. Lógica de Negocio: Buscar planes y calcular ingredientes
         plans = DailyPlan.objects.filter(
             group=group,
-            date__range=[start_date, end_date]
+            date__range=[start_date, end_date],
+            is_eating_out=False
         ).select_related('meal')
 
         # Si no hay planes, podríamos lanzar error, o crear lista vacía.

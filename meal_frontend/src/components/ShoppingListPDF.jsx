@@ -1,133 +1,183 @@
 import React from 'react';
 import { Page, Text, View, Document, StyleSheet } from '@react-pdf/renderer';
 
+// Estilos
 const styles = StyleSheet.create({
     page: {
         flexDirection: 'column',
         backgroundColor: '#ffffff',
-        padding: 30,
+        padding: 40,
         fontFamily: 'Helvetica',
+        color: '#1f2937',
     },
+    // CABECERA
     header: {
-        marginBottom: 20,
+        marginBottom: 25,
         borderBottomWidth: 2,
-        borderBottomColor: '#16a34a',
-        paddingBottom: 10,
+        borderBottomColor: '#E11D48', // Berry
+        paddingBottom: 15,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-end',
+    },
+    headerLeft: {
+        flexDirection: 'column',
     },
     title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#166534',
-        marginBottom: 4,
+        fontSize: 20,
+        fontWeight: 'bold', // Helvetica standard soporta bold básico
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+        color: '#E11D48',
     },
     subtitle: {
-        fontSize: 12,
+        fontSize: 10,
+        marginTop: 4,
         color: '#6b7280',
+    },
+    headerRight: {
+        fontSize: 10,
+        color: '#9ca3af',
+        textAlign: 'right',
+    },
+    // TABLA
+    section: {
+        marginBottom: 10,
     },
     row: {
         flexDirection: 'row',
-        borderBottomWidth: 1,
-        borderBottomColor: '#f3f4f6', // Gris muy clarito
+        borderBottomWidth: 0.5,
+        borderBottomColor: '#e5e7eb',
         alignItems: 'center',
-        paddingVertical: 8,
+        paddingVertical: 10,
     },
-    // ESTILO DE LA CAJA DE CHECK
+    // --- CHECKBOX VACÍO ---
     checkBox: {
-        width: 15,
-        height: 15,
+        width: 14,
+        height: 14,
         borderWidth: 1,
-        borderColor: '#374151',
-        marginRight: 10,
-        justifyContent: 'center', // Centrar la X o el tick verticalmente
-        alignItems: 'center',     // Centrar horizontalmente
+        borderColor: '#d1d5db',
+        borderRadius: 7, // Círculo
+        marginRight: 12,
     },
-    // ESTILO DEL CHECK DENTRO DE LA CAJA
-    checkMark: {
-        fontSize: 10,
-        color: '#16a34a', // Verde
+    // --- CHECKBOX RELLENO (CON LA X) ---
+    checkBoxFilled: {
+        width: 14,
+        height: 14,
+        borderRadius: 7,
+        backgroundColor: '#E11D48', // Fondo Berry
+        marginRight: 12,
+        justifyContent: 'center',   // Centrar X vertical
+        alignItems: 'center',       // Centrar X horizontal
+    },
+    // --- LA X ---
+    checkMarkText: {
+        color: '#ffffff', // X Blanca
+        fontSize: 8,      // Pequeña para que quepa
         fontWeight: 'bold',
+        marginBottom: 1,  // Ajuste fino visual
     },
+    // TEXTOS
     itemName: {
-        fontSize: 12,
-        color: '#1f2937',
+        fontSize: 11,
+        color: '#374151',
         flexGrow: 1,
-    },
-    // ESTILO PARA TEXTO YA COMPRADO (Gris)
-    itemPurchased: {
-        fontSize: 12,
-        color: '#9ca3af', // Gris claro
-        flexGrow: 1,
-        textDecoration: 'line-through', // Tachado (opcional, react-pdf lo soporta en versiones recientes)
-    },
-    quantity: {
-        fontSize: 12,
         fontWeight: 'bold',
-        color: '#111827',
     },
-    unit: {
-        fontSize: 10,
-        color: '#6b7280',
-        marginLeft: 2,
-        width: 40,
-        textAlign: 'right'
+    itemPurchased: {
+        fontSize: 11,
+        color: '#9ca3af',
+        flexGrow: 1,
+        textDecoration: 'line-through',
+    },
+    quantityBadge: {
+        backgroundColor: '#f3f4f6',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 4,
+        fontSize: 9,
+        color: '#111827',
+        minWidth: 50,
+        textAlign: 'center',
+    },
+    quantityPurchased: {
+        color: '#d1d5db',
+        fontSize: 9,
+        textAlign: 'right',
+        minWidth: 50,
     },
     footer: {
         position: 'absolute',
         bottom: 30,
-        left: 30,
-        right: 30,
+        left: 40,
+        right: 40,
         textAlign: 'center',
         color: '#9ca3af',
-        fontSize: 10,
-        borderTopWidth: 1,
-        borderTopColor: '#e5e7eb',
+        fontSize: 8,
+        borderTopWidth: 0.5,
+        borderTopColor: '#f3f4f6',
         paddingTop: 10,
     },
 });
 
-export const ShoppingListPDF = ({ shoppingList, groupName }) => (
-    <Document>
-        <Page size="A4" style={styles.page}>
+export const ShoppingListPDF = ({ shoppingList, groupName }) => {
+    return (
+        <Document>
+            <Page size="A4" style={styles.page}>
 
-            {/* CABECERA */}
-            <View style={styles.header}>
-                <Text style={styles.title}>Lista de la Compra</Text>
-                <Text style={styles.subtitle}>
-                    Grupo: {groupName} | {shoppingList.start_date} - {shoppingList.end_date}
-                </Text>
-            </View>
+                {/* CABECERA */}
+                <View style={styles.header}>
+                    <View style={styles.headerLeft}>
+                        <Text style={styles.title}>Lista de la Compra</Text>
+                        <Text style={styles.subtitle}>
+                            GRUPO: {groupName.toUpperCase()}
+                        </Text>
+                    </View>
+                    <View style={styles.headerRight}>
+                        <Text>{shoppingList.start_date} / {shoppingList.end_date}</Text>
+                        <Text style={{ marginTop: 2 }}>{shoppingList.items.length} productos</Text>
+                    </View>
+                </View>
 
-            {/* LISTA DE ITEMS */}
-            <View>
-                {shoppingList.items.map((item, index) => (
-                    <View key={index} style={styles.row}>
+                {/* LISTA */}
+                <View style={styles.section}>
+                    {shoppingList.items.map((item, index) => (
+                        <View key={index} style={styles.row}>
 
-                        {/* LÓGICA DEL CHECKBOX */}
-                        <View style={styles.checkBox}>
-                            {/* Si está comprado, pintamos una X o un tick */}
-                            {item.is_purchased && (
-                                <Text style={styles.checkMark}>X</Text>
+                            {/* LÓGICA CHECKBOX */}
+                            {item.is_purchased ? (
+                                <View style={styles.checkBoxFilled}>
+                                    <Text style={styles.checkMarkText}>X</Text>
+                                </View>
+                            ) : (
+                                <View style={styles.checkBox} />
+                            )}
+
+                            {/* NOMBRE */}
+                            <Text style={item.is_purchased ? styles.itemPurchased : styles.itemName}>
+                                {item.name}
+                            </Text>
+
+                            {/* CANTIDAD */}
+                            {item.is_purchased ? (
+                                <Text style={styles.quantityPurchased}>
+                                    {item.quantity} {item.unit}
+                                </Text>
+                            ) : (
+                                <View style={styles.quantityBadge}>
+                                    <Text>{item.quantity} {item.unit}</Text>
+                                </View>
                             )}
                         </View>
+                    ))}
+                </View>
 
-                        {/* NOMBRE (Si está comprado, sale en gris) */}
-                        <Text style={item.is_purchased ? styles.itemPurchased : styles.itemName}>
-                            {item.name}
-                        </Text>
+                {/* FOOTER */}
+                <Text style={styles.footer}>
+                    Generado automáticamente por MealPlanner.
+                </Text>
 
-                        {/* CANTIDAD (Si está comprado, también en gris para que no destaque) */}
-                        <Text style={item.is_purchased ? { ...styles.quantity, color: '#9ca3af' } : styles.quantity}>
-                            {item.quantity}
-                        </Text>
-                        <Text style={styles.unit}>{item.unit}</Text>
-                    </View>
-                ))}
-            </View>
-
-            <Text style={styles.footer}>
-                Generado por MealPlanner - Lo marcado (X) ya lo tienes.
-            </Text>
-
-        </Page>
-    </Document>
-);
+            </Page>
+        </Document>
+    );
+};

@@ -1,8 +1,16 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
-import { IngredientSelect } from "../components/IngredientSelect"; // <--- Importamos
+import { IngredientSelect } from "../components/IngredientSelect";
 import { useAuth } from '../context/AuthContext';
+import {
+    ArrowLeftIcon,
+    PhotoIcon,
+    TrashIcon,
+    PlusIcon,
+    SparklesIcon,
+    PencilSquareIcon
+} from '@heroicons/react/24/outline';
 
 export const CreateRecipePage = () => {
     const navigate = useNavigate();
@@ -14,11 +22,10 @@ export const CreateRecipePage = () => {
     const [ingredients, setIngredients] = useState([
         { ingredient_id: "", quantity: "", unit: "g" }
     ]);
-    const [instructions, setInstructions] = useState(""); // Estado para texto
-    const [selectedImage, setSelectedImage] = useState(null); // Estado para el archivo (visualización)
+    const [instructions, setInstructions] = useState("");
+    const [selectedImage, setSelectedImage] = useState(null);
     const [imageBase64, setImageBase64] = useState("");
-
-    // NOTA: He borrado el useEffect de availableIngredients, ya no hace falta aquí.
+    const [loading, setLoading] = useState(false);
 
     const addRow = () => {
         setIngredients([...ingredients, { ingredient_id: "", quantity: "", unit: "g" }]);
@@ -36,15 +43,13 @@ export const CreateRecipePage = () => {
         setIngredients(newList);
     };
 
-    // Función para convertir archivo a Base64
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            setSelectedImage(URL.createObjectURL(file)); // Para previsualizar
-
+            setSelectedImage(URL.createObjectURL(file));
             const reader = new FileReader();
             reader.onloadend = () => {
-                setImageBase64(reader.result); // Esto es lo que enviaremos a Django
+                setImageBase64(reader.result);
             };
             reader.readAsDataURL(file);
         }
@@ -52,12 +57,14 @@ export const CreateRecipePage = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
         try {
             // 1. Validamos ingredientes
             const validIngredients = ingredients.filter(i => i.ingredient_id && i.quantity);
 
             if (validIngredients.length === 0) {
                 alert("Añade al menos un ingrediente");
+                setLoading(false);
                 return;
             }
 
@@ -68,7 +75,7 @@ export const CreateRecipePage = () => {
                 unit: i.unit
             }));
 
-            // 3. Creamos el objeto base SIN LA IMAGEN
+            // 3. Objeto base
             const payload = {
                 name,
                 base_servings: parseInt(baseServings),
@@ -77,7 +84,7 @@ export const CreateRecipePage = () => {
                 instructions: instructions
             };
 
-            // 4. LÓGICA CONDICIONAL: Solo añadimos la imagen si el usuario subió una
+            // 4. Imagen
             if (imageBase64) {
                 payload.image = imageBase64;
             }
@@ -86,64 +93,114 @@ export const CreateRecipePage = () => {
             navigate("/recipes");
         } catch (error) {
             console.error(error);
-            alert("Error creando receta: " + JSON.stringify(error.response?.data));
+            alert("Error creando receta.");
+        } finally {
+            setLoading(false);
         }
     };
 
-    return (
-        <div className="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-md border border-gray-200 mt-6">
-            <h1 className="text-2xl font-bold mb-6 text-gray-800">🍳 Nueva Receta</h1>
+    if (loading) return (
+        <div className="min-h-[60vh] flex flex-col items-center justify-center text-[color:hsl(var(--muted-foreground))] animate-pulse">
+            <SparklesIcon className="w-10 h-10 mb-4 text-[color:hsl(var(--primary))]" />
+            <p>Guardando tu creación...</p>
+        </div>
+    );
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-3 gap-4">
-                    <div className="col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del Plato</label>
+    return (
+        <div className="max-w-4xl mx-auto pb-32 px-4 font-sans animate-fade-in space-y-8">
+
+            {/* CABECERA */}
+            <div className="flex items-center gap-4">
+                <button
+                    onClick={() => navigate(-1)}
+                    className="p-2 rounded-full hover:bg-[color:hsl(var(--muted))] text-[color:hsl(var(--muted-foreground))] transition-colors"
+                >
+                    <ArrowLeftIcon className="w-6 h-6" />
+                </button>
+                <div>
+                    <h1 className="text-3xl font-extrabold text-[color:hsl(var(--foreground))] tracking-tight">
+                        Nueva Receta
+                    </h1>
+                    <p className="text-[color:hsl(var(--muted-foreground))]">
+                        Añade un nuevo plato a tu colección personal.
+                    </p>
+                </div>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-10">
+
+                {/* 1. SECCIÓN IMAGEN (HERO UPLOADER) */}
+                <div className="relative group">
+                    <div className="aspect-video w-full rounded-3xl overflow-hidden bg-[color:hsl(var(--muted))]/30 border-2 border-dashed border-[color:hsl(var(--border))] relative flex items-center justify-center transition-all group-hover:border-[color:hsl(var(--primary))]">
+
+                        {selectedImage ? (
+                            <>
+                                <img
+                                    src={selectedImage}
+                                    alt="Preview"
+                                    className="w-full h-full object-cover opacity-100 group-hover:opacity-75 transition-opacity duration-300"
+                                />
+                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                    <span className="bg-black/50 text-white px-4 py-2 rounded-full font-bold text-sm flex items-center gap-2 backdrop-blur-sm">
+                                        <PencilSquareIcon className="w-5 h-5" /> Cambiar Foto
+                                    </span>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="flex flex-col items-center text-[color:hsl(var(--muted-foreground))]">
+                                <PhotoIcon className="w-16 h-16 mb-2 opacity-50" />
+                                <p className="font-medium">Sube una foto del plato</p>
+                                <p className="text-xs opacity-70">Haz clic para seleccionar</p>
+                            </div>
+                        )}
+
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        />
+                    </div>
+                </div>
+
+                {/* 2. DATOS BÁSICOS */}
+                <div className="grid md:grid-cols-3 gap-6">
+                    <div className="md:col-span-2 space-y-2">
+                        <label className="text-xs font-bold text-[color:hsl(var(--muted-foreground))] uppercase tracking-wider ml-1">
+                            Nombre del Plato
+                        </label>
                         <input
                             required
                             type="text"
                             value={name}
                             onChange={e => setName(e.target.value)}
-                            className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="input w-full bg-[color:hsl(var(--background))] text-lg font-bold"
                             placeholder="Ej: Lentejas estofadas"
                         />
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Raciones Base</label>
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-[color:hsl(var(--muted-foreground))] uppercase tracking-wider ml-1">
+                            Raciones
+                        </label>
                         <input
                             type="number"
                             value={baseServings}
                             onChange={e => setBaseServings(e.target.value)}
-                            className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
-                        />
-                    </div>
-                </div>
-                {/* NUEVO: IMAGEN */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Foto del plato</label>
-                    <div className="flex items-start gap-4">
-                        <div className="w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center overflow-hidden bg-gray-50 relative">
-                            {selectedImage ? (
-                                <img src={selectedImage} alt="Preview" className="w-full h-full object-cover" />
-                            ) : (
-                                <span className="text-gray-400 text-xs text-center px-2">Sin imagen</span>
-                            )}
-                        </div>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageChange}
-                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                            className="input w-full bg-[color:hsl(var(--background))]"
                         />
                     </div>
                 </div>
 
+                {/* 3. INGREDIENTES */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Ingredientes</label>
-                    <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
+                    <div className="flex items-center justify-between mb-4">
+                        <label className="text-lg font-bold text-[color:hsl(var(--foreground))]">Ingredientes</label>
+                    </div>
+
+                    <div className="space-y-3">
                         {ingredients.map((row, index) => (
-                            <div key={index} className="flex gap-2 items-start">
+                            <div key={index} className="flex gap-3 items-start animate-in fade-in slide-in-from-left-2 duration-300">
 
-                                {/* AQUI ESTÁ EL CAMBIO: Usamos nuestro componente */}
                                 <div className="flex-1">
                                     <IngredientSelect
                                         value={row.ingredient_id}
@@ -157,69 +214,76 @@ export const CreateRecipePage = () => {
                                     placeholder="Cant."
                                     value={row.quantity}
                                     onChange={(e) => handleIngredientChange(index, "quantity", e.target.value)}
-                                    className="w-20 border border-gray-300 rounded p-2 text-sm h-[38px]" // Altura ajustada para igualar al select
+                                    className="input w-20 text-center bg-[color:hsl(var(--background))]"
                                 />
 
-                                <select
-                                    value={row.unit}
-                                    onChange={(e) => handleIngredientChange(index, "unit", e.target.value)}
-                                    className="w-24 border border-gray-300 rounded p-2 text-sm h-[38px] bg-white"
-                                >
-                                    <option value="g">g</option>
-                                    <option value="kg">kg</option>
-                                    <option value="ml">ml</option>
-                                    <option value="l">l</option>
-                                    <option value="u">unds</option>
-                                    <option value="tbsp">cda.</option>
-                                    <option value="tsp">cdta.</option>
-                                </select>
+                                <div className="relative w-24">
+                                    <select
+                                        value={row.unit}
+                                        onChange={(e) => handleIngredientChange(index, "unit", e.target.value)}
+                                        className="input w-full bg-[color:hsl(var(--background))] appearance-none pr-8 text-sm"
+                                    >
+                                        <option value="g">g</option>
+                                        <option value="kg">kg</option>
+                                        <option value="ml">ml</option>
+                                        <option value="l">l</option>
+                                        <option value="u">unds</option>
+                                        <option value="tbsp">cda.</option>
+                                        <option value="tsp">cdta.</option>
+                                    </select>
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[color:hsl(var(--muted-foreground))]">
+                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                                    </div>
+                                </div>
 
                                 <button
                                     type="button"
                                     onClick={() => removeRow(index)}
-                                    className="text-red-500 hover:text-red-700 font-bold px-2 h-[38px] flex items-center"
+                                    className="p-3 text-[color:hsl(var(--muted-foreground))] hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                    title="Eliminar fila"
                                 >
-                                    ✕
+                                    <TrashIcon className="w-5 h-5" />
                                 </button>
                             </div>
                         ))}
-
-                        <button
-                            type="button"
-                            onClick={addRow}
-                            className="mt-2 text-sm text-blue-600 font-medium hover:underline"
-                        >
-                            + Añadir otro ingrediente
-                        </button>
                     </div>
                 </div>
+                <div className="flex justify-end">
+                    <button
+                        type="button"
+                        onClick={addRow}
+                        className="text-sm font-bold text-[color:hsl(var(--primary))] hover:underline flex items-center gap-1"
+                    >
+                        <PlusIcon className="w-4 h-4" /> Añadir ingrediente
+                    </button>
+                </div>
 
-                {/* NUEVO: INSTRUCCIONES (TEXTAREA) */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Pasos de la Receta</label>
+                {/* 4. INSTRUCCIONES */}
+                <div className="space-y-2">
+                    <label className="text-lg font-bold text-[color:hsl(var(--foreground))]">Pasos de preparación</label>
                     <textarea
                         value={instructions}
                         onChange={e => setInstructions(e.target.value)}
                         placeholder="1. Cortar la cebolla...&#10;2. Sofreír..."
-                        rows={6}
-                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none whitespace-pre-wrap"
+                        rows={8}
+                        className="input w-full bg-[color:hsl(var(--background))] h-auto py-4 leading-relaxed whitespace-pre-wrap"
                     />
-                    <p className="text-xs text-gray-500 mt-1">Puedes usar espacios y saltos de línea.</p>
                 </div>
 
-                <div className="flex justify-end gap-3 pt-4">
+                {/* BOTONES ACCIÓN */}
+                <div className="flex items-center justify-end gap-4 pt-6 border-t border-[color:hsl(var(--border))]">
                     <button
                         type="button"
                         onClick={() => navigate("/recipes")}
-                        className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                        className="px-6 py-2.5 font-bold text-[color:hsl(var(--muted-foreground))] hover:text-[color:hsl(var(--foreground))] transition-colors"
                     >
                         Cancelar
                     </button>
                     <button
                         type="submit"
-                        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow"
+                        className="btn-primary px-8 py-2.5 shadow-xl shadow-pink-500/20"
                     >
-                        Guardar Receta
+                        Crear Receta
                     </button>
                 </div>
             </form>

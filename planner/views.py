@@ -36,7 +36,7 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
         # Nota: Asumimos group=1 si no viene, para facilitar pruebas
         data = request.data.copy()
         if 'group' not in data:
-            data['group'] = 1
+            data['group'] = 2
 
         serializer = self.get_serializer(data=data)
         

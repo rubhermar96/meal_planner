@@ -5,7 +5,10 @@ import {
     XMarkIcon,
     TrashIcon,
     ArrowDownTrayIcon,
-    BuildingStorefrontIcon // <--- Importamos este icono nuevo
+    BuildingStorefrontIcon,
+    UsersIcon,
+    BookmarkIcon,
+    CheckBadgeIcon
 } from '@heroicons/react/24/outline';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { RecipePDF } from './RecipePDF';
@@ -28,10 +31,9 @@ export const EditPlanModal = ({ isOpen, onClose, plan, onUpdate, onDelete }) => 
 
     // --- DETECTAR TIPO DE PLAN ---
     const isEatingOut = plan.is_eating_out;
-    const recipeData = plan.meal_details; // Será null si isEatingOut es true
+    const recipeData = plan.meal_details;
 
-    // --- LÓGICA DE RECETAS (Protegida) ---
-    // Solo calculamos estas variables si NO es comer fuera para evitar errores
+    // --- LÓGICA DE RECETAS ---
     const baseServings = recipeData?.base_servings || 1;
     const ratio = servings / baseServings;
     const alreadySaved = recipeData?.is_saved_by_user;
@@ -64,11 +66,12 @@ export const EditPlanModal = ({ isOpen, onClose, plan, onUpdate, onDelete }) => 
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-[color:hsl(var(--card))] rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200 border border-[color:hsl(var(--border))]">
 
-                {/* --- CABECERA (DINÁMICA: AZUL O NARANJA) --- */}
-                <div className={`relative shrink-0 ${isEatingOut ? 'bg-orange-500' : 'bg-blue-600'}`}>
+                {/* --- CABECERA (DINÁMICA) --- */}
+                <div className={`relative shrink-0 min-h-[140px] flex flex-col justify-end ${isEatingOut ? 'bg-orange-500' : 'bg-[color:hsl(var(--primary))]'
+                    }`}>
 
                     {/* FONDO: Si es receta y tiene foto */}
                     {!isEatingOut && recipeData?.image && (
@@ -76,195 +79,187 @@ export const EditPlanModal = ({ isOpen, onClose, plan, onUpdate, onDelete }) => 
                             <img
                                 src={recipeData.image}
                                 alt={recipeData.name}
-                                className="w-full h-full object-cover opacity-50"
+                                className="w-full h-full object-cover opacity-60 mix-blend-overlay"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-blue-900/90 to-transparent" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
                         </div>
                     )}
 
                     {/* FONDO: Si es comer fuera (Icono grande) */}
                     {isEatingOut && (
-                        <div className="absolute inset-0 flex items-center justify-center opacity-20">
+                        <div className="absolute inset-0 flex items-center justify-center opacity-20 pointer-events-none">
                             <BuildingStorefrontIcon className="w-32 h-32 text-white" />
                         </div>
                     )}
 
                     {/* TEXTO DE CABECERA */}
-                    <div className="relative p-4 z-10">
-                        <h3 className="text-white font-bold text-lg leading-tight drop-shadow-md pr-8">
+                    <div className="relative p-6 z-10 text-white">
+                        <h3 className="font-extrabold text-2xl leading-tight drop-shadow-md pr-8 mb-1">
                             {isEatingOut ? plan.custom_name : recipeData?.name}
                         </h3>
 
-                        <div className="flex justify-between items-end mt-1">
-                            <p className="text-white/80 text-xs">
+                        <div className="flex justify-between items-end opacity-90 text-xs font-medium tracking-wide">
+                            <p>
                                 {isEatingOut ? (
-                                    <span className="font-medium flex items-center gap-1">
-                                        <BuildingStorefrontIcon className="w-3 h-3" /> Restaurante / Fuera
+                                    <span className="flex items-center gap-1.5 uppercase">
+                                        <BuildingStorefrontIcon className="w-4 h-4" /> Restaurante
                                     </span>
                                 ) : (
-                                    <span>De: <span className="font-medium">{isMyRecipe ? 'Ti (Mía)' : recipeData?.owner_name}</span></span>
+                                    <span>Por {isMyRecipe ? 'Ti' : recipeData?.owner_name}</span>
                                 )}
                             </p>
-                            <p className="text-white/70 text-xs capitalize">
-                                {plan.meal_slot === 'LUNCH' ? 'Comida' : plan.meal_slot === 'DINNER' ? 'Cena' : 'Otro'} • {plan.date}
+                            <p className="capitalize px-2 py-0.5 rounded bg-white/20 backdrop-blur-sm">
+                                {plan.meal_slot === 'LUNCH' ? 'Comida' : plan.meal_slot === 'DINNER' ? 'Cena' : plan.meal_slot === 'BREAKFAST' ? 'Desayuno' : 'Otro'}
                             </p>
                         </div>
                     </div>
+
+                    {/* BOTÓN CERRAR (X) */}
+                    <button
+                        onClick={onClose}
+                        className="absolute top-4 right-4 text-white/70 hover:text-white bg-black/20 hover:bg-black/40 rounded-full w-8 h-8 flex items-center justify-center transition focus:outline-none backdrop-blur-sm"
+                    >
+                        <XMarkIcon className="w-5 h-5" />
+                    </button>
                 </div>
 
                 {/* --- CUERPO DEL MODAL --- */}
-                <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
+                <div className="p-6 overflow-y-auto custom-scrollbar flex-1 bg-[color:hsl(var(--card))]">
 
-                    {/* CASO A: ES UNA RECETA (Tu código original) */}
+                    {/* CASO A: ES UNA RECETA */}
                     {!isEatingOut && recipeData ? (
-                        <>
+                        <div className="space-y-8">
+
                             {/* 1. Selector de Raciones */}
-                            <div className="mb-6 text-center">
-                                <label className="block text-xs font-bold text-gray-400 mb-3 uppercase tracking-wider">
+                            <div className="text-center">
+                                <label className="block text-xs font-bold text-[color:hsl(var(--muted-foreground))] mb-4 uppercase tracking-widest">
                                     Raciones a cocinar
                                 </label>
-                                <div className="inline-flex items-center bg-gray-100 rounded-full p-1 shadow-inner">
+                                <div className="inline-flex items-center gap-4">
                                     <button
                                         onClick={() => setServings(s => Math.max(1, s - 1))}
-                                        className="w-10 h-10 rounded-full bg-white shadow hover:bg-gray-50 text-xl font-bold text-blue-600 transition flex items-center justify-center"
+                                        className="w-12 h-12 rounded-full border border-[color:hsl(var(--border))] hover:border-[color:hsl(var(--primary))] hover:text-[color:hsl(var(--primary))] bg-[color:hsl(var(--background))] text-xl font-light transition-all flex items-center justify-center shadow-sm"
                                     >
                                         -
                                     </button>
-                                    <span className="text-2xl font-bold text-gray-800 w-16 text-center tabular-nums">
+                                    <span className="text-4xl font-black text-[color:hsl(var(--foreground))] w-16 text-center tabular-nums tracking-tighter">
                                         {servings}
                                     </span>
                                     <button
                                         onClick={() => setServings(s => s + 1)}
-                                        className="w-10 h-10 rounded-full bg-white shadow hover:bg-gray-50 text-xl font-bold text-blue-600 transition flex items-center justify-center"
+                                        className="w-12 h-12 rounded-full border border-[color:hsl(var(--border))] hover:border-[color:hsl(var(--primary))] hover:text-[color:hsl(var(--primary))] bg-[color:hsl(var(--background))] text-xl font-light transition-all flex items-center justify-center shadow-sm"
                                     >
                                         +
                                     </button>
                                 </div>
                             </div>
 
-                            {/* 2. Lista de Ingredientes Dinámica y PDF */}
-                            <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 shadow-sm">
-                                <div className="flex gap-3 mb-6">
+                            {/* 2. Lista de Ingredientes Dinámica */}
+                            <div className="bg-[color:hsl(var(--muted))]/30 rounded-2xl p-5 border border-[color:hsl(var(--border))]">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h4 className="text-sm font-bold text-[color:hsl(var(--foreground))] flex items-center gap-2">
+                                        <div className="w-1 h-4 bg-[color:hsl(var(--primary))] rounded-full" />
+                                        Ingredientes necesarios
+                                    </h4>
+
                                     <PDFDownloadLink
                                         document={<RecipePDF recipe={recipeData} />}
                                         fileName={`Receta_${recipeData.name}.pdf`}
-                                        className="flex-1 bg-blue-50 text-blue-700 py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2 hover:bg-blue-100 transition border border-blue-200"
+                                        className="text-[color:hsl(var(--primary))] text-xs font-bold hover:underline flex items-center gap-1"
                                     >
-                                        {({ loading }) => (
-                                            <>
-                                                <ArrowDownTrayIcon className="w-4 h-4" />
-                                                {loading ? 'Generando...' : 'Descargar Receta'}
-                                            </>
-                                        )}
+                                        {({ loading }) => loading ? '...' : <><ArrowDownTrayIcon className="w-3 h-3" /> PDF</>}
                                     </PDFDownloadLink>
                                 </div>
 
-                                <h4 className="text-sm font-bold text-gray-700 mb-3 flex justify-between items-center">
-                                    <span>Ingredientes:</span>
-                                    <span className="text-[10px] font-normal text-gray-500 bg-white px-2 py-1 rounded border">
-                                        Base receta: {baseServings}p
-                                    </span>
-                                </h4>
-                                <ul className="space-y-2 text-sm">
+                                <ul className="space-y-3 text-sm">
                                     {recipeData.ingredients && recipeData.ingredients.length > 0 ? (
                                         recipeData.ingredients.map((ing) => {
                                             const adjustedQty = ing.quantity * ratio;
                                             const displayQty = parseFloat(adjustedQty.toFixed(2));
                                             return (
-                                                <li key={ing.id} className="flex justify-between items-center border-b border-gray-200 last:border-0 pb-2 last:pb-0 border-dashed">
-                                                    <span className="text-gray-700 font-medium">{ing.ingredient_name}</span>
-                                                    <span className="text-gray-900 font-bold bg-white px-2 py-0.5 rounded shadow-sm text-xs">
-                                                        {displayQty} <span className="font-normal text-gray-500">{ing.unit}</span>
+                                                <li key={ing.id} className="flex justify-between items-baseline border-b border-[color:hsl(var(--border))]/50 last:border-0 pb-2 last:pb-0 border-dashed">
+                                                    <span className="text-[color:hsl(var(--muted-foreground))] font-medium">{ing.ingredient_name}</span>
+                                                    <span className="text-[color:hsl(var(--foreground))] font-bold whitespace-nowrap ml-2">
+                                                        {displayQty} <span className="font-normal text-[color:hsl(var(--muted-foreground))] text-xs">{ing.unit}</span>
                                                     </span>
                                                 </li>
                                             );
                                         })
                                     ) : (
-                                        <li className="text-gray-400 italic text-center text-xs py-2">Sin ingredientes registrados.</li>
+                                        <li className="text-[color:hsl(var(--muted-foreground))] italic text-center text-xs py-2">Sin ingredientes registrados.</li>
                                     )}
                                 </ul>
                             </div>
 
-                            {/* Instrucciones */}
+                            {/* Instrucciones (Acordeón simplificado o texto) */}
                             {recipeData.instructions && (
-                                <div className="mt-6 border-t border-gray-100 pt-4">
-                                    <h4 className="text-sm font-bold text-gray-700 mb-2">Cómo se hace:</h4>
-                                    <div className="text-sm text-gray-600 whitespace-pre-line leading-relaxed">
+                                <div className="pt-2">
+                                    <h4 className="text-sm font-bold text-[color:hsl(var(--foreground))] mb-2">Preparación rápida:</h4>
+                                    <p className="text-sm text-[color:hsl(var(--muted-foreground))] whitespace-pre-line leading-relaxed line-clamp-4 hover:line-clamp-none transition-all cursor-pointer">
                                         {recipeData.instructions}
-                                    </div>
+                                    </p>
                                 </div>
                             )}
-                        </>
+                        </div>
                     ) : (
                         /* CASO B: ES COMER FUERA */
-                        <div className="flex flex-col items-center justify-center py-10 text-center">
-                            <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mb-4 text-orange-500">
-                                <BuildingStorefrontIcon className="w-10 h-10" />
+                        <div className="flex flex-col items-center justify-center py-12 text-center h-full">
+                            <div className="w-24 h-24 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center mb-6 text-orange-500 shadow-sm animate-bounce-slow">
+                                <BuildingStorefrontIcon className="w-12 h-12" />
                             </div>
-                            <h4 className="text-xl font-bold text-gray-800 mb-2">Plan de Comida Fuera</h4>
-                            <p className="text-gray-500 text-sm max-w-xs mx-auto">
-                                Disfruta de tu comida en <strong>{plan.custom_name}</strong>. No hay ingredientes ni instrucciones necesarias.
+                            <h4 className="text-xl font-bold text-[color:hsl(var(--foreground))] mb-2">Plan de Comida Fuera</h4>
+                            <p className="text-[color:hsl(var(--muted-foreground))] text-sm max-w-xs mx-auto">
+                                Disfruta de tu comida en <strong>{plan.custom_name}</strong>.
                             </p>
                         </div>
                     )}
                 </div>
 
                 {/* --- FOOTER DE ACCIONES --- */}
-                <div className="p-4 bg-gray-50 border-t border-gray-200 flex flex-col gap-3 shrink-0">
+                <div className="p-5 bg-[color:hsl(var(--muted))]/30 border-t border-[color:hsl(var(--border))] flex flex-col gap-3 shrink-0">
 
-                    {/* BOTONES SOLO PARA RECETAS */}
-                    {!isEatingOut && (
-                        <>
-                            {!alreadySaved ? (
-                                <button
-                                    onClick={handleImport}
-                                    disabled={isImporting}
-                                    className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 rounded-lg shadow-sm flex items-center justify-center gap-2 transition disabled:opacity-50"
-                                >
-                                    {isImporting ? 'Guardando...' : (
-                                        <>
-                                            <span className="text-lg">📥</span> <span className="text-sm">Guardar copia en mis recetas</span>
-                                        </>
-                                    )}
-                                </button>
-                            ) : (
-                                !isMyRecipe && (
-                                    <div className="text-center text-xs text-green-700 font-semibold py-1.5 bg-green-50 rounded border border-green-200">
-                                        ✓ Ya tienes esta receta en tu biblioteca
-                                    </div>
-                                )
+                    {/* BOTÓN IMPORTAR (Solo recetas ajenas no guardadas) */}
+                    {!isEatingOut && !isMyRecipe && !alreadySaved && (
+                        <button
+                            onClick={handleImport}
+                            disabled={isImporting}
+                            className="w-full bg-[color:hsl(var(--background))] border border-[color:hsl(var(--border))] hover:border-[color:hsl(var(--primary))] text-[color:hsl(var(--foreground))] hover:text-[color:hsl(var(--primary))] font-bold py-2.5 rounded-xl shadow-sm flex items-center justify-center gap-2 transition disabled:opacity-50 text-sm"
+                        >
+                            {isImporting ? 'Guardando...' : (
+                                <>
+                                    <BookmarkIcon className="w-4 h-4" /> Guardar en Mis Recetas
+                                </>
                             )}
-                        </>
+                        </button>
+                    )}
+
+                    {/* Mensaje si ya está guardada */}
+                    {!isEatingOut && !isMyRecipe && alreadySaved && (
+                        <div className="text-center text-xs text-green-600 font-bold py-2 bg-green-50 rounded-lg border border-green-100 flex items-center justify-center gap-1">
+                            <CheckBadgeIcon className="w-4 h-4" /> Ya en tu colección
+                        </div>
                     )}
 
                     <div className="flex gap-3">
-                        {/* Botón Eliminar (Ancho completo si es comer fuera, normal si es receta) */}
+                        {/* Botón Eliminar */}
                         <button
                             onClick={handleDelete}
-                            className={`px-4 py-2 border border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 rounded-lg font-medium text-sm transition ${isEatingOut ? 'w-full' : ''}`}
+                            className={`px-4 py-2.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-xl font-bold text-sm transition flex items-center justify-center gap-2 ${isEatingOut ? 'w-full' : ''}`}
                         >
-                            Eliminar del Plan
+                            <TrashIcon className="w-4 h-4" /> Eliminar
                         </button>
 
-                        {/* Botón Confirmar Cambios (Solo para recetas) */}
+                        {/* Botón Confirmar (Solo recetas) */}
                         {!isEatingOut && (
                             <button
                                 onClick={handleUpdate}
-                                className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm shadow transition"
+                                className="flex-1 px-4 py-2.5 btn-primary rounded-xl font-bold text-sm shadow-lg shadow-pink-500/20"
                             >
-                                Confirmar Cambios
+                                Actualizar Raciones
                             </button>
                         )}
                     </div>
                 </div>
-
-                {/* BOTÓN CERRAR (X) */}
-                <button
-                    onClick={onClose}
-                    className="absolute top-3 right-3 text-white/70 hover:text-white bg-black/10 hover:bg-black/20 rounded-full w-8 h-8 flex items-center justify-center transition focus:outline-none"
-                >
-                    <XMarkIcon className="w-5 h-5" />
-                </button>
 
             </div>
         </div>

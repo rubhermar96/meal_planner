@@ -21,34 +21,85 @@ export const IngredientSelect = ({ value, onChange }) => {
     };
 
     const handleCreate = async (inputValue) => {
-        console.log("Intentando crear:", inputValue); // <--- LOG 1
         setIsLoading(true);
         try {
-            // Enviamos solo el nombre (el backend pone el usuario)
+            // Creamos el ingrediente
             const res = await api.post('ingredients/', { name: inputValue });
 
-            console.log("Respuesta del servidor:", res.data); // <--- LOG 2
-
-            // Creamos la opción para el select
+            // Lo añadimos a la lista local
             const newOption = { value: res.data.id, label: res.data.name };
-
-            // IMPORTANTE: Actualizamos la lista local INMEDIATAMENTE
             setOptions((prev) => [...prev, newOption]);
 
-            // Avisamos al padre del nuevo ID
+            // Seleccionamos el nuevo valor automáticamente
             onChange(res.data.id);
 
         } catch (error) {
-            // Si falla, queremos saber por qué (puede ser un error 400 de validación)
-            console.error("Error CREANDO ingrediente:", error.response?.data || error.message);
-            alert("Error al crear. Mira la consola (F12) para más detalles.");
+            console.error("Error creando ingrediente:", error);
+            alert("No se pudo crear el ingrediente.");
         } finally {
             setIsLoading(false);
         }
     };
 
-    // Buscamos la opción seleccionada
     const currentOption = options.find(op => op.value === value);
+
+    // --- ESTILOS PERSONALIZADOS PARA QUE PAREZCA TAILWIND ---
+    // React-Select usa JS para estilos, así que mapeamos tus variables CSS aquí.
+    const customStyles = {
+        control: (base, state) => ({
+            ...base,
+            backgroundColor: 'hsl(var(--background))',
+            borderColor: state.isFocused ? 'hsl(var(--primary))' : 'hsl(var(--border))', // Borde gris suave o Berry al foco
+            borderWidth: '1px',
+            borderRadius: '0.5rem', // rounded-lg
+            padding: '2px',
+            boxShadow: state.isFocused ? '0 0 0 1px hsl(var(--primary))' : 'none', // Anillo de foco Berry
+            '&:hover': {
+                borderColor: state.isFocused ? 'hsl(var(--primary))' : 'hsl(var(--border))',
+            },
+            minHeight: '42px', // Altura consistente con los otros inputs
+        }),
+        menu: (base) => ({
+            ...base,
+            backgroundColor: 'hsl(var(--card))',
+            border: '1px solid hsl(var(--border))',
+            borderRadius: '0.75rem', // rounded-xl
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', // shadow-lg
+            zIndex: 50,
+            overflow: 'hidden',
+            padding: 0
+        }),
+        option: (base, state) => ({
+            ...base,
+            backgroundColor: state.isFocused ? 'hsl(var(--muted))' : 'transparent', // Hover gris suave
+            color: 'hsl(var(--foreground))',
+            cursor: 'pointer',
+            padding: '10px 12px',
+            fontSize: '0.875rem', // text-sm
+            '&:active': {
+                backgroundColor: 'hsl(var(--primary))',
+                color: 'white'
+            },
+            '&:hover': {
+                backgroundColor: 'hsl(var(--primary))',
+                color: 'white',
+            }
+        }),
+        singleValue: (base) => ({
+            ...base,
+            color: 'hsl(var(--foreground))',
+            fontWeight: 500,
+        }),
+        input: (base) => ({
+            ...base,
+            color: 'hsl(var(--foreground))',
+        }),
+        placeholder: (base) => ({
+            ...base,
+            color: 'hsl(var(--muted-foreground))',
+            fontSize: '0.875rem',
+        }),
+    };
 
     return (
         <CreatableSelect
@@ -59,9 +110,10 @@ export const IngredientSelect = ({ value, onChange }) => {
             onCreateOption={handleCreate}
             options={options}
             value={currentOption}
-            placeholder="Busca o escribe..."
-            formatCreateLabel={(inputValue) => `Crear "${inputValue}"`}
-            className="text-sm"
+            placeholder="Selecciona o escribe..."
+            formatCreateLabel={(inputValue) => `✨ Crear nuevo: "${inputValue}"`}
+            styles={customStyles} // APLICAMOS LOS ESTILOS
+            classNamePrefix="react-select"
         />
     );
 };

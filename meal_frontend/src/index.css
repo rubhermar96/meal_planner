@@ -1,1 +1,96 @@
 @import "tailwindcss";
+
+@layer base {
+    :root {
+        /* Base */
+        --background: 0 0% 100%;
+        /* Blanco */
+        --foreground: 343 47% 10%;
+        /* Texto casi negro (tinte rojizo) */
+
+        /* Superficies (Tarjetas) */
+        --card: 0 0% 100%;
+        --card-foreground: 343 47% 10%;
+        --border: 220 13% 91%;
+        /* Gris muy suave para bordes */
+
+        /* TU COLOR PRINCIPAL (Berry #BB4365) */
+        /* HSL aprox: 343, 47%, 50% */
+        --primary: 343 47% 50%;
+        --primary-foreground: 0 0% 100%;
+        /* Texto blanco sobre berry */
+
+        /* TU COLOR SECUNDARIO (Lemon #FAEF7C) */
+        /* HSL aprox: 54, 92%, 73% */
+        --secondary: 54 92% 73%;
+        --secondary-foreground: 343 47% 20%;
+        /* Texto oscuro sobre limón */
+
+        /* Destructive (Rojos error) */
+        --destructive: 0 84% 60%;
+        --destructive-foreground: 0 0% 100%;
+
+        /* Inputs y Anillos */
+        --input: 220 13% 91%;
+        --ring: 343 47% 50%;
+
+        --radius: 0.75rem;
+        /* Bordes redondeados modernos */
+    }
+
+    /* MODO OSCURO */
+    .dark {
+        --background: 343 30% 10%;
+        /* Berry muy oscuro casi negro */
+        --foreground: 54 20% 90%;
+        /* Blanco amarillento */
+
+        --card: 343 30% 13%;
+        --card-foreground: 54 20% 90%;
+        --border: 343 30% 20%;
+
+        --primary: 343 47% 60%;
+        /* Berry un poco más luminoso */
+        --primary-foreground: 0 0% 100%;
+
+        --secondary: 54 92% 60%;
+        /* Lemon un poco más oscuro */
+        --secondary-foreground: 343 47% 10%;
+
+        --input: 343 30% 20%;
+        --ring: 54 92% 60%;
+    }
+}
+
+@layer base {
+    * {
+        @apply border-[color:hsl(var(--border))];
+    }
+
+    body {
+        @apply bg-[color:hsl(var(--background))] text-[color:hsl(var(--foreground))] overflow-x-hidden;
+    }
+}
+
+/* Clases de utilidad estilo Shadcn */
+@layer components {
+    .btn-primary {
+        @apply bg-[color:hsl(var(--primary))] text-[color:hsl(var(--primary-foreground))] hover:opacity-90 inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:hsl(var(--ring))];
+    }
+
+    .btn-secondary {
+        @apply bg-[color:hsl(var(--secondary))] text-[color:hsl(var(--secondary-foreground))] hover:opacity-80 inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-colors;
+    }
+
+    .btn-ghost {
+        @apply hover:bg-gray-100 dark:hover:bg-gray-800 text-[color:hsl(var(--foreground))] inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-colors;
+    }
+
+    .card {
+        @apply rounded-xl border bg-[color:hsl(var(--card))] text-[color:hsl(var(--card-foreground))] shadow-sm;
+    }
+
+    .input {
+        @apply flex h-10 w-full rounded-md border border-[color:hsl(var(--input))] bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:hsl(var(--ring))];
+    }
+}

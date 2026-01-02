@@ -1,6 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+// Importamos el Layout nuevo que acabamos de modificar
 import { Layout } from "./components/Layout";
+
+// Tus páginas (sin cambios)
 import { RecipesPage } from "./pages/RecipesPage";
 import { PlannerPage } from "./pages/PlannerPage";
 import { CreateRecipePage } from "./pages/CreateRecipePage";
@@ -12,12 +15,11 @@ import { GroupsPage } from "./pages/GroupsPage";
 import { EditRecipePage } from "./pages/EditRecipePage";
 import { RecipeDetailPage } from "./pages/RecipeDetailPage";
 
-// Componente para proteger rutas
 const PrivateRoute = () => {
   const { user } = useAuth();
-  // Si no hay usuario, mandamos al login
   return user ? <Outlet /> : <Navigate to="/login" />;
 };
+
 function App() {
   return (
     <AuthProvider>
@@ -26,8 +28,10 @@ function App() {
           {/* Rutas Públicas */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+
           {/* Rutas Privadas */}
           <Route element={<PrivateRoute />}>
+            {/* El Layout ahora es el Sidebar + Header Móvil */}
             <Route path="/" element={<Layout />}>
               <Route index element={<PlannerPage />} />
               <Route path="recipes" element={<RecipesPage />} />
@@ -39,6 +43,9 @@ function App() {
               <Route path="groups" element={<GroupsPage />} />
             </Route>
           </Route>
+
+          {/* Redirección por defecto */}
+          <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

@@ -14,13 +14,23 @@ export const AuthProvider = ({ children }) => {
 
     // Al cargar la página, comprobamos si ya hay token guardado
     useEffect(() => {
-        const savedGroupId = localStorage.getItem('active_group_id');
-        const savedGroupName = localStorage.getItem('active_group_name');
-        if (savedGroupId && savedGroupName) {
-            setActiveGroup({ id: savedGroupId, name: savedGroupName });
+        const savedGroup = localStorage.getItem('active_group');
+        if (savedGroup) {
+            try {
+                setActiveGroup(JSON.parse(savedGroup));
+            } catch (e) {
+                console.error("Error parsing saved group:", e);
+                localStorage.removeItem('active_group');
+            }
         }
 
+        // Limpiar claves antiguas por si existen (migración silenciosa)
+        localStorage.removeItem('active_group_id');
+        localStorage.removeItem('active_group_name');
+
         const token = localStorage.getItem('access_token');
+        const userData = localStorage.getItem('user_data');
+
         if (token) {
             try {
                 const decoded = jwtDecode(token);
@@ -31,10 +41,23 @@ export const AuthProvider = ({ children }) => {
                     logout();
                     return;
                 }
-                // Podríamos validar si ha expirado aquí
+
+                // Si tenemos datos de usuario guardados, los restauramos
+                if (userData) {
+                    setUser(JSON.parse(userData));
+                } else if (decoded.user_id) {
+                    // Fallback básico si no hay user_data pero si token válido
+                    // Podríamos intentar recuperar el nombre del token si viniera, 
+                    // pero como vimos, suele venir solo user_id.
+                    // Dejamos el usuario como "autenticado" al menos.
+                    // Opcional: setUser({ id: decoded.user_id });
+                }
+
                 api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
             } catch (error) {
+                console.error("Error restoring session:", error);
                 localStorage.removeItem('access_token');
+                localStorage.removeItem('user_data');
             }
         }
         setLoading(false);
@@ -47,9 +70,27 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('access_token', response.data.access);
         localStorage.setItem('refresh_token', response.data.refresh);
 
+        // Guardamos datos del usuario para persistencia
+        const userData = { username };
+        localStorage.setItem('user_data', JSON.stringify(userData));
+
         // Decodificamos para tener datos del usuario
-        const decoded = jwtDecode(response.data.access);
-        setUser({ username: username }); // O lo que venga en el token
+        // const decoded = jwtDecode(response.data.access); // No strictly needed just for username if we have it from input
+        setUser(userData);
+
+        // RESTORE USER PREFERENCE: Active Group
+        const savedPreference = localStorage.getItem(`preference_active_group_${username}`);
+        if (savedPreference) {
+            try {
+                const group = JSON.parse(savedPreference);
+                setActiveGroup(group);
+                // Sync session storage
+                localStorage.setItem('active_group', savedPreference);
+            } catch (e) {
+                console.error("Error restoring group preference:", e);
+            }
+        }
+
         return true;
     };
 
@@ -61,18 +102,22 @@ export const AuthProvider = ({ children }) => {
 
     const selectGroup = (group) => {
         setActiveGroup(group);
-        localStorage.setItem('active_group_id', group.id);
-        localStorage.setItem('active_group_name', group.name);
+        localStorage.setItem('active_group', JSON.stringify(group));
+
+        // SAVE USER PREFERENCE
+        if (user && user.username) {
+            localStorage.setItem(`preference_active_group_${user.username}`, JSON.stringify(group));
+        }
     };
 
     const logout = () => {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user_data');
         setUser(null);
 
         setActiveGroup(null);
-        localStorage.removeItem('active_group_id');
-        localStorage.removeItem('active_group_name');
+        localStorage.removeItem('active_group');
     };
 
     return (

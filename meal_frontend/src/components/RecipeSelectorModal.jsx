@@ -1,6 +1,14 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
-import { MagnifyingGlassIcon, BuildingStorefrontIcon, BookOpenIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import {
+    MagnifyingGlassIcon,
+    BuildingStorefrontIcon,
+    BookOpenIcon,
+    XMarkIcon,
+    CalendarIcon,
+    UsersIcon,
+    PlusIcon,
+} from '@heroicons/react/24/outline';
 
 export const RecipeSelectorModal = ({ isOpen, onClose, onSave, date, slotLabel }) => {
     const [activeTab, setActiveTab] = useState('recipes'); // 'recipes' | 'out'
@@ -17,7 +25,6 @@ export const RecipeSelectorModal = ({ isOpen, onClose, onSave, date, slotLabel }
         if (isOpen && activeTab === 'recipes') {
             fetchRecipes();
         }
-        // Resetear estados al abrir
         if (isOpen) {
             setRestaurantName("");
             setServings(2);
@@ -39,120 +46,167 @@ export const RecipeSelectorModal = ({ isOpen, onClose, onSave, date, slotLabel }
     );
 
     const handleSaveRecipe = (meal) => {
-        // Enviamos estructura de Receta
         onSave({
             meal: meal.id,
-            target_servings: servings, // Para recetas mandamos raciones
+            target_servings: servings,
             is_eating_out: false
         });
     };
 
     const handleSaveEatOut = () => {
         if (!restaurantName.trim()) return alert("Escribe un nombre");
-        // Enviamos estructura de Comer Fuera
         onSave({
             meal: null,
             custom_name: restaurantName,
             is_eating_out: true,
-            target_servings: 1 // Valor por defecto para que no falle el backend
+            target_servings: 1
         });
     };
 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[85vh]">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+            {/* Modal Container */}
+            <div className="bg-[color:hsl(var(--card))] rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200 border border-[color:hsl(var(--border))]">
 
                 {/* CABECERA */}
-                <div className="p-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
+                <div className="p-5 border-b border-[color:hsl(var(--border))] flex justify-between items-start bg-[color:hsl(var(--muted))]/30">
                     <div>
-                        <h3 className="text-lg font-bold text-gray-800">{slotLabel}</h3>
-                        <p className="text-xs text-gray-500">{date}</p>
+                        <h3 className="text-lg font-bold text-[color:hsl(var(--foreground))] flex items-center gap-2">
+                            {slotLabel}
+                        </h3>
+                        <p className="text-xs font-medium text-[color:hsl(var(--muted-foreground))] flex items-center gap-1 mt-1">
+                            <CalendarIcon className="w-3.5 h-3.5" /> {date}
+                        </p>
                     </div>
-                    <button onClick={onClose}><XMarkIcon className="w-6 h-6 text-gray-400 hover:text-gray-600" /></button>
-                </div>
-
-                {/* PESTAÑAS */}
-                <div className="flex border-b border-gray-200">
                     <button
-                        onClick={() => setActiveTab('recipes')}
-                        className={`flex-1 py-3 text-sm font-bold flex items-center justify-center gap-2 ${activeTab === 'recipes' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50' : 'text-gray-500 hover:bg-gray-50'}`}
+                        onClick={onClose}
+                        className="p-1 rounded-full hover:bg-[color:hsl(var(--muted))] text-[color:hsl(var(--muted-foreground))] transition-colors"
                     >
-                        <BookOpenIcon className="w-4 h-4" /> Recetas
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('out')}
-                        className={`flex-1 py-3 text-sm font-bold flex items-center justify-center gap-2 ${activeTab === 'out' ? 'text-orange-600 border-b-2 border-orange-600 bg-orange-50/50' : 'text-gray-500 hover:bg-gray-50'}`}
-                    >
-                        <BuildingStorefrontIcon className="w-4 h-4" /> Comer Fuera
+                        <XMarkIcon className="w-5 h-5" />
                     </button>
                 </div>
 
-                {/* CONTENIDO */}
-                <div className="p-4 overflow-y-auto flex-1">
+                {/* PESTAÑAS (Segmented Control) */}
+                <div className="p-4 pb-0">
+                    <div className="flex p-1 bg-[color:hsl(var(--muted))] rounded-xl">
+                        <button
+                            onClick={() => setActiveTab('recipes')}
+                            className={`flex-1 py-2 text-sm font-bold rounded-lg flex items-center justify-center gap-2 transition-all ${activeTab === 'recipes'
+                                ? 'bg-[color:hsl(var(--background))] text-[color:hsl(var(--primary))] shadow-sm'
+                                : 'text-[color:hsl(var(--muted-foreground))] hover:text-[color:hsl(var(--foreground))]'
+                                }`}
+                        >
+                            <BookOpenIcon className="w-4 h-4" /> Recetas
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('out')}
+                            className={`flex-1 py-2 text-sm font-bold rounded-lg flex items-center justify-center gap-2 transition-all ${activeTab === 'out'
+                                ? 'bg-[color:hsl(var(--background))] text-orange-600 shadow-sm'
+                                : 'text-[color:hsl(var(--muted-foreground))] hover:text-[color:hsl(var(--foreground))]'
+                                }`}
+                        >
+                            <BuildingStorefrontIcon className="w-4 h-4" /> Comer Fuera
+                        </button>
+                    </div>
+                </div>
+
+                {/* CONTENIDO SCROLLABLE */}
+                <div className="p-4 overflow-y-auto flex-1 custom-scrollbar">
 
                     {/* --- PESTAÑA RECETAS --- */}
                     {activeTab === 'recipes' && (
-                        <>
-                            <div className="flex gap-2 mb-4">
+                        <div className="space-y-4">
+
+                            {/* Filtros */}
+                            <div className="flex gap-3">
                                 <div className="relative flex-1">
-                                    <MagnifyingGlassIcon className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+                                    <MagnifyingGlassIcon className="absolute left-3 top-2.5 w-4 h-4 text-[color:hsl(var(--muted-foreground))]" />
                                     <input
                                         type="text"
-                                        placeholder="Buscar..."
-                                        className="w-full pl-9 pr-3 py-2 bg-gray-100 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Buscar receta..."
+                                        className="input pl-9 bg-[color:hsl(var(--muted))]/30 h-10 text-sm"
                                         value={search}
                                         onChange={e => setSearch(e.target.value)}
+                                        autoFocus
                                     />
                                 </div>
-                                <input
-                                    type="number"
-                                    min="1"
-                                    value={servings}
-                                    onChange={e => setServings(e.target.value)}
-                                    className="w-16 p-2 bg-gray-100 rounded-lg text-sm text-center font-bold focus:ring-2 focus:ring-blue-500 outline-none"
-                                    title="Raciones"
-                                />
+                                <div className="relative w-20" title="Raciones a cocinar">
+                                    <UsersIcon className="absolute left-2 top-2.5 w-4 h-4 text-[color:hsl(var(--muted-foreground))]" />
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        value={servings}
+                                        onChange={e => setServings(e.target.value)}
+                                        className="input pl-8 pr-2 bg-[color:hsl(var(--muted))]/30 h-10 text-sm font-bold text-center"
+                                    />
+                                </div>
                             </div>
+
+                            {/* Lista Resultados */}
                             <div className="space-y-2">
-                                {filteredRecipes.map(meal => (
-                                    <button
-                                        key={meal.id}
-                                        onClick={() => handleSaveRecipe(meal)}
-                                        className="w-full text-left p-2 hover:bg-blue-50 rounded-lg flex items-center gap-3 transition group border border-transparent hover:border-blue-100"
-                                    >
-                                        <div className="w-12 h-12 bg-gray-200 rounded-md overflow-hidden shrink-0">
-                                            {meal.image ? <img src={meal.image} className="w-full h-full object-cover" /> : <span className="flex items-center justify-center h-full text-lg">🍳</span>}
-                                        </div>
-                                        <div>
-                                            <span className="font-bold text-gray-700 group-hover:text-blue-700 block text-sm">{meal.name}</span>
-                                            <span className="text-xs text-gray-400">{meal.base_servings} rac. base</span>
-                                        </div>
-                                    </button>
-                                ))}
+                                {filteredRecipes.length > 0 ? (
+                                    filteredRecipes.map(meal => (
+                                        <button
+                                            key={meal.id}
+                                            onClick={() => handleSaveRecipe(meal)}
+                                            className="w-full text-left p-2 rounded-xl flex items-center gap-3 transition-all hover:bg-[color:hsl(var(--muted))]/50 group border border-transparent hover:border-[color:hsl(var(--border))]"
+                                        >
+                                            <div className="w-14 h-14 bg-[color:hsl(var(--muted))] rounded-lg overflow-hidden shrink-0 relative">
+                                                {meal.image ? (
+                                                    <img src={meal.image} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="flex items-center justify-center h-full text-xl bg-[color:hsl(var(--muted))]/50">🍳</div>
+                                                )}
+                                            </div>
+
+                                            <div className="flex-1 min-w-0">
+                                                <span className="font-bold text-[color:hsl(var(--foreground))] group-hover:text-[color:hsl(var(--primary))] block text-sm truncate transition-colors">
+                                                    {meal.name}
+                                                </span>
+                                                <span className="text-xs text-[color:hsl(var(--muted-foreground))] flex items-center gap-1">
+                                                    <UsersIcon className="w-3 h-3" /> {meal.base_servings} rac. base
+                                                </span>
+                                            </div>
+
+                                            <div className="hover:bg-[color:hsl(var(--primary))]/50 transition-all cursor-pointer text-[color:hsl(var(--primary))] text-xs font-bold px-3 py-1 bg-[color:hsl(var(--primary))]/10 rounded-full">
+                                                <PlusIcon className="w-5 h-5" />
+                                            </div>
+                                        </button>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-8 text-[color:hsl(var(--muted-foreground))] text-sm">
+                                        No se encontraron recetas.
+                                    </div>
+                                )}
                             </div>
-                        </>
+                        </div>
                     )}
 
                     {/* --- PESTAÑA COMER FUERA --- */}
                     {activeTab === 'out' && (
-                        <div className="text-center py-8">
-                            <div className="w-20 h-20 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <div className="text-center py-8 flex flex-col items-center justify-center h-full">
+                            <div className="w-20 h-20 bg-orange-50 dark:bg-orange-900/20 text-orange-500 rounded-full flex items-center justify-center mb-6 animate-bounce-slow">
                                 <BuildingStorefrontIcon className="w-10 h-10" />
                             </div>
-                            <h4 className="font-bold text-gray-800 mb-2">¿Dónde vas a comer?</h4>
+
+                            <h4 className="font-bold text-[color:hsl(var(--foreground))] mb-1">¿Dónde vas a comer?</h4>
+                            <p className="text-xs text-[color:hsl(var(--muted-foreground))] mb-6">Añade el nombre del restaurante o evento.</p>
+
                             <input
                                 type="text"
                                 placeholder="Ej: Pizzería Luigi..."
-                                className="w-full border border-gray-300 p-3 rounded-lg mb-4 outline-none focus:ring-2 focus:ring-orange-500 text-center font-medium"
+                                className="input w-full text-center font-medium mb-4 h-12"
                                 value={restaurantName}
                                 onChange={e => setRestaurantName(e.target.value)}
                                 autoFocus
                             />
+
                             <button
                                 onClick={handleSaveEatOut}
-                                className="w-full bg-orange-600 text-white py-3 rounded-lg font-bold hover:bg-orange-700 transition shadow-lg"
+                                disabled={!restaurantName.trim()}
+                                className="w-full bg-orange-600 text-white py-3 rounded-xl font-bold hover:bg-orange-700 transition shadow-lg hover:shadow-orange-500/20 disabled:opacity-50 disabled:shadow-none"
                             >
                                 Guardar Plan
                             </button>
