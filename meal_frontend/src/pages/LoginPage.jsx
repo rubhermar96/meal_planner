@@ -48,6 +48,9 @@ export const LoginPage = () => {
                     <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-[color:hsl(var(--primary))] to-[color:hsl(var(--primary))]/80 text-white mb-6 shadow-lg shadow-pink-500/30 ring-4 ring-[color:hsl(var(--background))]">
                         <SparklesIcon className="w-7 h-7" />
                     </div>
+                    <h2 className="text-red-500 text-3xl font-bold bg-yellow-200 p-4 border-4 border-red-500 z-50 relative">
+                        VERSIÓN NUEVA: TIMEOUT 120s
+                    </h2>
                     <h2 className="text-4xl font-extrabold text-[color:hsl(var(--foreground))] tracking-tight leading-none">
                         Bienvenido
                     </h2>
