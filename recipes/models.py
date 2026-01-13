@@ -67,12 +67,15 @@ class Meal(models.Model):
                     
                     im_io = BytesIO()
                     img.save(im_io, name=self.image.name, format='JPEG', quality=75)
-                    new_image = ContentFile(im_io.getvalue(), name=os.path.splitext(self.image.name)[0] + '.jpg')
                     
-                    # We have to be careful not to trigger save loop if we were calling save() again.
-                    # But here we are modifying self.image before calling super().save().
-                    # However, changing self.image to a ContentFile might mean we lose the original file handle if we aren't careful?
-                    # Actually, assigning ContentFile to ImageField works fine.
+                    # Generate a clean filename
+                    original_name = self.image.name
+                    if not original_name:
+                         original_name = f"meal_{uuid.uuid4()}.jpg"
+                    
+                    filename = os.path.splitext(os.path.basename(original_name))[0] + '.jpg'
+                    
+                    new_image = ContentFile(im_io.getvalue(), name=filename)
                     self.image = new_image
             except Exception as e:
                 # If there's any error opening index/file, we skip compression
