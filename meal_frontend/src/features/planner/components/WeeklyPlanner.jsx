@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useWeeklyCalendar } from '../../../hooks/useWeeklyCalendar';
 import api from '../../../api/axios';
 import { useAuth } from '../../auth/context/AuthContext';
-import { RecipeSelectorModal } from './RecipeSelectorModal';
+import { RecipeSelectorModal } from '../../recipes/components/RecipeSelectorModal';
 import { EditPlanModal } from './EditPlanModal';
 import {
     BuildingStorefrontIcon,
@@ -177,8 +177,8 @@ export const WeeklyPlanner = () => {
                                     key={day.toString()}
                                     onClick={() => setMobileSelectedDate(day)}
                                     className={`flex flex-col items-center justify-center py-3 transition-all relative ${isSelected
-                                            ? 'text-[color:hsl(var(--primary))] font-bold'
-                                            : 'text-[color:hsl(var(--muted-foreground))] hover:bg-[color:hsl(var(--muted))]/20'
+                                        ? 'text-[color:hsl(var(--primary))] font-bold'
+                                        : 'text-[color:hsl(var(--muted-foreground))] hover:bg-[color:hsl(var(--muted))]/20'
                                         }`}
                                 >
                                     <span className="text-[9px] uppercase tracking-tighter mb-0.5">{format(day, 'EEE', { locale: es }).replace('.', '')}</span>
@@ -260,8 +260,8 @@ export const WeeklyPlanner = () => {
                             return (
                                 <div key={day.toString()} className={`col-span-1 ${isToday ? 'bg-[color:hsl(var(--primary))]/[0.02]' : ''}`}>
                                     <div className={`h-14 flex flex-col items-center justify-center border-b border-[color:hsl(var(--border))] sticky top-0 z-10 backdrop-blur-sm ${isToday
-                                            ? 'bg-[color:hsl(var(--primary))] text-white shadow-sm'
-                                            : 'bg-[color:hsl(var(--card))]/95 text-[color:hsl(var(--muted-foreground))]'
+                                        ? 'bg-[color:hsl(var(--primary))] text-white shadow-sm'
+                                        : 'bg-[color:hsl(var(--card))]/95 text-[color:hsl(var(--muted-foreground))]'
                                         }`}>
                                         <span className="text-[10px] font-bold uppercase">{format(day, 'EEE', { locale: es })}</span>
                                         <span className={`text-lg font-bold leading-none ${isToday ? 'text-white' : 'text-[color:hsl(var(--foreground))]'}`}>

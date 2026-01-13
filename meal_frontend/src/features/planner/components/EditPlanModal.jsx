@@ -11,7 +11,7 @@ import {
     CheckBadgeIcon
 } from '@heroicons/react/24/outline';
 import { PDFDownloadLink } from '@react-pdf/renderer';
-import { RecipePDF } from './RecipePDF';
+import { RecipePDF } from '../../recipes/components/RecipePDF';
 
 export const EditPlanModal = ({ isOpen, onClose, plan, onUpdate, onDelete }) => {
     const { user } = useAuth();
