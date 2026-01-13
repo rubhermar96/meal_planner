@@ -36,6 +36,9 @@
 
         --radius: 0.75rem;
         /* Bordes redondeados modernos */
+
+        --muted: 210 40% 96.1%;
+        --muted-foreground: 215.4 16.3% 46.9%;
     }
 
     /* MODO OSCURO */
@@ -59,12 +62,19 @@
 
         --input: 343 30% 20%;
         --ring: 54 92% 60%;
+
+        --muted: 343 30% 20%;
+        --muted-foreground: 215 20.2% 65.1%;
     }
 }
 
 @layer base {
     * {
         @apply border-[color:hsl(var(--border))];
+    }
+
+    button {
+        @apply cursor-pointer;
     }
 
     body {

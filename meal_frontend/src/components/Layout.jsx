@@ -67,7 +67,7 @@ export const Layout = () => {
                         onClick={() => mobile && setIsMobileMenuOpen(false)}
                         className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${isActive
                             ? 'bg-[color:hsl(var(--primary))] text-white shadow-md'
-                            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-[color:hsl(var(--foreground))]'
+                            : 'text-[color:hsl(var(--muted-foreground))] hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-[color:hsl(var(--foreground))]'
                             }`}
                     >
                         <item.icon className="w-5 h-5" />
@@ -94,7 +94,7 @@ export const Layout = () => {
 
                 {/* MENÚ DE NAVEGACIÓN */}
                 <div className="flex-1 py-6 px-3 overflow-y-auto">
-                    <p className="px-3 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Menú Principal</p>
+                    <p className="px-3 text-xs font-bold text-[color:hsl(var(--muted-foreground))] uppercase tracking-wider mb-2">Menú Principal</p>
                     <NavLinks />
                 </div>
 
@@ -113,7 +113,7 @@ export const Layout = () => {
                         {/* Botón Tema */}
                         <button
                             onClick={toggleTheme}
-                            className="flex-1 flex items-center justify-center p-2 rounded-md border border-[color:hsl(var(--border))] bg-[color:hsl(var(--card))] hover:bg-gray-100 dark:hover:bg-gray-800 transition text-gray-500"
+                            className="flex-1 flex items-center justify-center p-2 rounded-md border border-[color:hsl(var(--border))] bg-[color:hsl(var(--card))] hover:bg-gray-100 dark:hover:bg-gray-800 transition text-[color:hsl(var(--muted-foreground))]"
                             title="Cambiar Tema"
                         >
                             {theme === 'light' ? <MoonIcon className="w-4 h-4" /> : <SunIcon className="w-4 h-4" />}
@@ -149,7 +149,7 @@ export const Layout = () => {
                 {isMobileMenuOpen && (
                     <div className="fixed inset-0 z-50 md:hidden">
                         {/* Fondo oscuro para cerrar al hacer click fuera */}
-                        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onClick={() => setIsMobileMenuOpen(false)}></div>
+                        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity cursor-pointer" onClick={() => setIsMobileMenuOpen(false)}></div>
 
                         {/* Panel Lateral Móvil */}
                         <div className="absolute top-0 left-0 w-[85%] max-w-[300px] h-full bg-[color:hsl(var(--card))] shadow-2xl animate-in slide-in-from-left duration-300 flex flex-col">
