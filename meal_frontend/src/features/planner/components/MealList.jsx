@@ -1,6 +1,6 @@
 // frontend/src/components/MealList.jsx
 import { useEffect, useState } from "react";
-import api from "../api/axios";
+import api from "../../../api/axios";
 
 export const MealList = () => {
     const [meals, setMeals] = useState([]);

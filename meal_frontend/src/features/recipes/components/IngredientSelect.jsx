@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import CreatableSelect from 'react-select/creatable';
-import api from '../api/axios';
+import api from '../../../api/axios';
 
 export const IngredientSelect = ({ value, onChange }) => {
     const [options, setOptions] = useState([]);

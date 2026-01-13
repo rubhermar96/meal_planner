@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useWeeklyCalendar } from '../hooks/useWeeklyCalendar';
-import api from '../api/axios';
-import { useAuth } from '../context/AuthContext';
+import { useWeeklyCalendar } from '../../../hooks/useWeeklyCalendar';
+import api from '../../../api/axios';
+import { useAuth } from '../../auth/context/AuthContext';
 import { RecipeSelectorModal } from './RecipeSelectorModal';
 import { EditPlanModal } from './EditPlanModal';
 import {

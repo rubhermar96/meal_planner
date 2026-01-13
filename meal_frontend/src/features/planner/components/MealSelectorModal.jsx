@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import api from '../api/axios';
+import api from '../../../api/axios';
 
 export const MealSelectorModal = ({ isOpen, onClose, onSave, date, slotLabel }) => {
     const [meals, setMeals] = useState([]);

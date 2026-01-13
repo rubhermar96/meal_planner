@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { PDFDownloadLink } from '@react-pdf/renderer';
-import api from '../api/axios';
-import { useAuth } from '../context/AuthContext';
+import api from '../../../api/axios';
+import { useAuth } from '../../auth/context/AuthContext';
 import { RecipePDF } from '../components/RecipePDF';
 import {
     PencilSquareIcon,

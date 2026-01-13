@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import api from "../api/axios";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "../../../api/axios";
 import { IngredientSelect } from "../components/IngredientSelect";
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../auth/context/AuthContext';
 import {
     ArrowLeftIcon,
     PhotoIcon,
@@ -12,52 +12,21 @@ import {
     PencilSquareIcon
 } from '@heroicons/react/24/outline';
 
-export const EditRecipePage = () => {
-    const { id } = useParams();
+export const CreateRecipePage = () => {
     const navigate = useNavigate();
+    const { activeGroup } = useAuth();
 
-    // Estados
-    const [loading, setLoading] = useState(true);
+    // Estado del formulario
     const [name, setName] = useState("");
     const [baseServings, setBaseServings] = useState(4);
-    const [ingredients, setIngredients] = useState([]);
+    const [ingredients, setIngredients] = useState([
+        { ingredient_id: "", quantity: "", unit: "g" }
+    ]);
     const [instructions, setInstructions] = useState("");
+    const [selectedImage, setSelectedImage] = useState(null);
+    const [imageBase64, setImageBase64] = useState("");
+    const [loading, setLoading] = useState(false);
 
-    // Estados Imagen
-    const [currentImageUrl, setCurrentImageUrl] = useState(null);
-    const [previewImage, setPreviewImage] = useState(null);
-    const [newImageBase64, setNewImageBase64] = useState(null);
-
-    // 1. CARGAR DATOS
-    useEffect(() => {
-        const loadRecipe = async () => {
-            try {
-                const res = await api.get(`meals/${id}/`);
-                const meal = res.data;
-
-                setName(meal.name);
-                setBaseServings(meal.base_servings);
-                setInstructions(meal.instructions || "");
-                setCurrentImageUrl(meal.image);
-
-                const formattedIngredients = meal.ingredients.map(ing => ({
-                    ingredient_id: ing.ingredient,
-                    quantity: ing.quantity,
-                    unit: ing.unit
-                }));
-                setIngredients(formattedIngredients);
-
-            } catch (error) {
-                console.error("Error cargando receta", error);
-                navigate('/recipes');
-            } finally {
-                setLoading(false);
-            }
-        };
-        loadRecipe();
-    }, [id, navigate]);
-
-    // --- MANEJADORES ---
     const addRow = () => {
         setIngredients([...ingredients, { ingredient_id: "", quantity: "", unit: "g" }]);
     };
@@ -77,10 +46,10 @@ export const EditRecipePage = () => {
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            setPreviewImage(URL.createObjectURL(file));
+            setSelectedImage(URL.createObjectURL(file));
             const reader = new FileReader();
             reader.onloadend = () => {
-                setNewImageBase64(reader.result);
+                setImageBase64(reader.result);
             };
             reader.readAsDataURL(file);
         }
@@ -88,43 +57,52 @@ export const EditRecipePage = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
         try {
+            // 1. Validamos ingredientes
             const validIngredients = ingredients.filter(i => i.ingredient_id && i.quantity);
+
             if (validIngredients.length === 0) {
                 alert("Añade al menos un ingrediente");
+                setLoading(false);
                 return;
             }
 
+            // 2. Preparamos los ingredientes
             const ingredientsPayload = validIngredients.map(i => ({
                 ingredient: i.ingredient_id,
                 quantity: i.quantity,
                 unit: i.unit
             }));
 
+            // 3. Objeto base
             const payload = {
                 name,
                 base_servings: parseInt(baseServings),
                 meal_type: "HOME",
                 ingredients: ingredientsPayload,
-                instructions: instructions,
+                instructions: instructions
             };
 
-            if (newImageBase64) {
-                payload.image = newImageBase64;
+            // 4. Imagen
+            if (imageBase64) {
+                payload.image = imageBase64;
             }
 
-            await api.put(`meals/${id}/`, payload);
-            navigate(`/recipes/${id}`);
-
+            await api.post("meals/", payload);
+            navigate("/recipes");
         } catch (error) {
-            alert("Error editando receta.");
+            console.error(error);
+            alert("Error creando receta.");
+        } finally {
+            setLoading(false);
         }
     };
 
     if (loading) return (
         <div className="min-h-[60vh] flex flex-col items-center justify-center text-[color:hsl(var(--muted-foreground))] animate-pulse">
             <SparklesIcon className="w-10 h-10 mb-4 text-[color:hsl(var(--primary))]" />
-            <p>Preparando ingredientes...</p>
+            <p>Guardando tu creación...</p>
         </div>
     );
 
@@ -141,10 +119,10 @@ export const EditRecipePage = () => {
                 </button>
                 <div>
                     <h1 className="text-3xl font-extrabold text-[color:hsl(var(--foreground))] tracking-tight">
-                        Editar Receta
+                        Nueva Receta
                     </h1>
                     <p className="text-[color:hsl(var(--muted-foreground))]">
-                        Ajusta los detalles de tu plato maestro.
+                        Añade un nuevo plato a tu colección personal.
                     </p>
                 </div>
             </div>
@@ -155,10 +133,10 @@ export const EditRecipePage = () => {
                 <div className="relative group">
                     <div className="aspect-video w-full rounded-3xl overflow-hidden bg-[color:hsl(var(--muted))]/30 border-2 border-dashed border-[color:hsl(var(--border))] relative flex items-center justify-center transition-all group-hover:border-[color:hsl(var(--primary))]">
 
-                        {(previewImage || currentImageUrl) ? (
+                        {selectedImage ? (
                             <>
                                 <img
-                                    src={previewImage || currentImageUrl}
+                                    src={selectedImage}
                                     alt="Preview"
                                     className="w-full h-full object-cover opacity-100 group-hover:opacity-75 transition-opacity duration-300"
                                 />
@@ -197,7 +175,7 @@ export const EditRecipePage = () => {
                             value={name}
                             onChange={e => setName(e.target.value)}
                             className="input w-full bg-[color:hsl(var(--background))] text-lg font-bold"
-                            placeholder="Ej: Paella Valenciana"
+                            placeholder="Ej: Lentejas estofadas"
                         />
                     </div>
                     <div className="space-y-2">
@@ -209,7 +187,6 @@ export const EditRecipePage = () => {
                             value={baseServings}
                             onChange={e => setBaseServings(e.target.value)}
                             className="input w-full bg-[color:hsl(var(--background))]"
-                            placeholder="4"
                         />
                     </div>
                 </div>
@@ -224,7 +201,6 @@ export const EditRecipePage = () => {
                         {ingredients.map((row, index) => (
                             <div key={index} className="flex gap-3 items-start animate-in fade-in slide-in-from-left-2 duration-300">
 
-                                {/* Componente Reuse (Asumo que renderiza un select/combobox) */}
                                 <div className="flex-1">
                                     <IngredientSelect
                                         value={row.ingredient_id}
@@ -255,7 +231,6 @@ export const EditRecipePage = () => {
                                         <option value="tbsp">cda.</option>
                                         <option value="tsp">cdta.</option>
                                     </select>
-                                    {/* Flechita custom para el select */}
                                     <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[color:hsl(var(--muted-foreground))]">
                                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                                     </div>
@@ -271,11 +246,6 @@ export const EditRecipePage = () => {
                                 </button>
                             </div>
                         ))}
-                        {ingredients.length === 0 && (
-                            <div className="text-center py-8 border-2 border-dashed border-[color:hsl(var(--border))] rounded-xl text-[color:hsl(var(--muted-foreground))]">
-                                No hay ingredientes. ¡Añade el primero!
-                            </div>
-                        )}
                     </div>
                 </div>
                 <div className="flex justify-end">
@@ -304,7 +274,7 @@ export const EditRecipePage = () => {
                 <div className="flex items-center justify-end gap-4 pt-6 border-t border-[color:hsl(var(--border))]">
                     <button
                         type="button"
-                        onClick={() => navigate(-1)}
+                        onClick={() => navigate("/recipes")}
                         className="px-6 py-2.5 font-bold text-[color:hsl(var(--muted-foreground))] hover:text-[color:hsl(var(--foreground))] transition-colors"
                     >
                         Cancelar
@@ -313,10 +283,9 @@ export const EditRecipePage = () => {
                         type="submit"
                         className="btn-primary px-8 py-2.5 shadow-xl shadow-pink-500/20"
                     >
-                        Guardar Cambios
+                        Crear Receta
                     </button>
                 </div>
-
             </form>
         </div>
     );

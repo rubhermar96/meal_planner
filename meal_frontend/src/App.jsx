@@ -1,19 +1,19 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
-import { AuthProvider, useAuth } from "./context/AuthContext";
+import { AuthProvider, useAuth } from "./features/auth/context/AuthContext";
 // Importamos el Layout nuevo que acabamos de modificar
 import { Layout } from "./components/Layout";
 
-// Tus páginas (sin cambios)
-import { RecipesPage } from "./pages/RecipesPage";
-import { PlannerPage } from "./pages/PlannerPage";
-import { CreateRecipePage } from "./pages/CreateRecipePage";
-import { ShoppingListPage } from "./pages/ShoppingListPage";
-import { LoginPage } from "./pages/LoginPage";
-import { RegisterPage } from "./pages/RegisterPage";
-import { ProfilePage } from "./pages/ProfilePage";
-import { GroupsPage } from "./pages/GroupsPage";
-import { EditRecipePage } from "./pages/EditRecipePage";
-import { RecipeDetailPage } from "./pages/RecipeDetailPage";
+// Features Pages
+import { RecipesPage } from "./features/recipes/pages/RecipesPage";
+import { PlannerPage } from "./features/planner/pages/PlannerPage";
+import { CreateRecipePage } from "./features/recipes/pages/CreateRecipePage";
+import { ShoppingListPage } from "./features/shopping_list/pages/ShoppingListPage";
+import { LoginPage } from "./features/auth/pages/LoginPage";
+import { RegisterPage } from "./features/auth/pages/RegisterPage";
+import { ProfilePage } from "./features/social/pages/ProfilePage";
+import { GroupsPage } from "./features/social/pages/GroupsPage";
+import { EditRecipePage } from "./features/recipes/pages/EditRecipePage";
+import { RecipeDetailPage } from "./features/recipes/pages/RecipeDetailPage";
 
 const PrivateRoute = () => {
   const { user } = useAuth();
