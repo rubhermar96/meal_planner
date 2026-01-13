@@ -5,6 +5,11 @@ from django.db.models import Q
 from django.db import transaction
 from .models import Meal, Ingredient, RecipeIngredient
 from .serializers import MealSerializer, IngredientSerializer
+from django.http import FileResponse, Http404
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
+import os
+from django.conf import settings
 
 class IngredientViewSet(viewsets.ModelViewSet):
     queryset = Ingredient.objects.all()
@@ -108,3 +113,18 @@ class MealViewSet(viewsets.ModelViewSet):
             return Response({"error": "Receta no encontrada"}, status=404)
         except Exception as e:
             return Response({"error": str(e)}, status=500)
+
+class MediaProxyView(APIView):
+    """
+    Sirve archivos de media a través de Django para evitar problemas de CORS
+    cuando se generan PDFs o se consumen desde clientes estrictos.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request, filepath):
+        # Construir la ruta completa
+        path = os.path.join(settings.MEDIA_ROOT, filepath)
+        
+        if os.path.exists(path):
+            return FileResponse(open(path, 'rb'))
+        raise Http404

@@ -147,6 +147,24 @@ const styles = StyleSheet.create({
     }
 });
 
+const getProxiedImage = (url) => {
+    if (!url) return null;
+    if (url.startsWith('data:') || url.startsWith('blob:')) return url;
+
+    // Si detectamos que es una URL de media estática, la pasamos por el proxy
+    // para asegurar que tenga las cabeceras CORS correctas
+    const mediaToken = '/media/';
+    const index = url.indexOf(mediaToken);
+
+    if (index !== -1) {
+        // Reemplazamos /media/ por /api/media-proxy/
+        // Esto mantiene el dominio (localhost o pythonanywhere)
+        return url.replace('/media/', '/api/media-proxy/');
+    }
+
+    return url;
+};
+
 export const RecipePDF = ({ recipe }) => (
     <Document>
         <Page size="A4" style={styles.page}>
@@ -164,9 +182,10 @@ export const RecipePDF = ({ recipe }) => (
             </View>
 
             {/* IMAGEN DESTACADA */}
+            {/* IMAGEN DESTACADA */}
             {recipe.image && (
                 <View style={styles.imageContainer}>
-                    <Image src={recipe.image} style={styles.recipeImage} />
+                    <Image src={getProxiedImage(recipe.image)} style={styles.recipeImage} />
                 </View>
             )}
 

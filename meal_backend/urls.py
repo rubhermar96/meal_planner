@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from recipes.views import MealViewSet, IngredientViewSet
+from recipes.views import MealViewSet, IngredientViewSet, MediaProxyView
 from planner.views import DailyPlanViewSet, ShoppingListViewSet
 from users.views import RegisterView, UserViewSet, PlanningGroupViewSet
 from rest_framework_simplejwt.views import (
@@ -24,4 +24,5 @@ urlpatterns = [
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/register/', RegisterView.as_view(), name='register'),
+    path('api/media-proxy/<path:filepath>', MediaProxyView.as_view(), name='media_proxy'),
 ]
