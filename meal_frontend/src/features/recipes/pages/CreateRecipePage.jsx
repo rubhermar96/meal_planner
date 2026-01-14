@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../../api/axios";
 import { IngredientSelect } from "../components/IngredientSelect";
+import { UNITS } from "../../../utils/unitConstants";
 import { useAuth } from '../../auth/context/AuthContext';
 import {
     ArrowLeftIcon,
@@ -20,7 +21,7 @@ export const CreateRecipePage = () => {
     const [name, setName] = useState("");
     const [baseServings, setBaseServings] = useState(4);
     const [ingredients, setIngredients] = useState([
-        { ingredient_id: "", quantity: "", unit: "g" }
+        { ingredient_id: "", quantity: "", unit: "gramos" }
     ]);
     const [instructions, setInstructions] = useState("");
     const [selectedImage, setSelectedImage] = useState(null);
@@ -28,7 +29,7 @@ export const CreateRecipePage = () => {
     const [loading, setLoading] = useState(false);
 
     const addRow = () => {
-        setIngredients([...ingredients, { ingredient_id: "", quantity: "", unit: "g" }]);
+        setIngredients([...ingredients, { ingredient_id: "", quantity: "", unit: "gramos" }]);
     };
 
     const removeRow = (index) => {
@@ -254,13 +255,11 @@ export const CreateRecipePage = () => {
                                             onChange={(e) => handleIngredientChange(index, "unit", e.target.value)}
                                             className="input w-full bg-[color:hsl(var(--background))] appearance-none pr-8 text-sm"
                                         >
-                                            <option value="g">g</option>
-                                            <option value="kg">kg</option>
-                                            <option value="ml">ml</option>
-                                            <option value="l">l</option>
-                                            <option value="u">unds</option>
-                                            <option value="tbsp">cda.</option>
-                                            <option value="tsp">cdta.</option>
+                                            {UNITS.map((u) => (
+                                                <option key={u.value} value={u.value}>
+                                                    {u.label}
+                                                </option>
+                                            ))}
                                         </select>
                                         <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[color:hsl(var(--muted-foreground))]">
                                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>

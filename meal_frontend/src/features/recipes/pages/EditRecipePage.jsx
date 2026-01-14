@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../../api/axios";
 import { IngredientSelect } from "../components/IngredientSelect";
+import { UNITS, normalizeUnit } from "../../../utils/unitConstants";
 import { useAuth } from '../../auth/context/AuthContext';
 import {
     ArrowLeftIcon,
@@ -43,7 +44,7 @@ export const EditRecipePage = () => {
                 const formattedIngredients = meal.ingredients.map(ing => ({
                     ingredient_id: ing.ingredient,
                     quantity: ing.quantity,
-                    unit: ing.unit
+                    unit: normalizeUnit(ing.unit)
                 }));
                 setIngredients(formattedIngredients);
 
@@ -59,7 +60,7 @@ export const EditRecipePage = () => {
 
     // --- MANEJADORES ---
     const addRow = () => {
-        setIngredients([...ingredients, { ingredient_id: "", quantity: "", unit: "g" }]);
+        setIngredients([...ingredients, { ingredient_id: "", quantity: "", unit: "gramos" }]);
     };
 
     const removeRow = (index) => {
@@ -281,13 +282,11 @@ export const EditRecipePage = () => {
                                             onChange={(e) => handleIngredientChange(index, "unit", e.target.value)}
                                             className="input w-full bg-[color:hsl(var(--background))] appearance-none pr-8 text-sm"
                                         >
-                                            <option value="g">g</option>
-                                            <option value="kg">kg</option>
-                                            <option value="ml">ml</option>
-                                            <option value="l">l</option>
-                                            <option value="u">unds</option>
-                                            <option value="tbsp">cda.</option>
-                                            <option value="tsp">cdta.</option>
+                                            {UNITS.map((u) => (
+                                                <option key={u.value} value={u.value}>
+                                                    {u.label}
+                                                </option>
+                                            ))}
                                         </select>
                                         {/* Flechita custom para el select */}
                                         <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[color:hsl(var(--muted-foreground))]">
