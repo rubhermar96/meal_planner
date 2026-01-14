@@ -1,5 +1,6 @@
 import React from 'react';
 import { Page, Text, View, Document, StyleSheet } from '@react-pdf/renderer';
+import { normalizeUnit } from '../../../utils/unitConstants';
 
 // Estilos
 const styles = StyleSheet.create({
@@ -161,11 +162,11 @@ export const ShoppingListPDF = ({ shoppingList, groupName }) => {
                             {/* CANTIDAD */}
                             {item.is_purchased ? (
                                 <Text style={styles.quantityPurchased}>
-                                    {item.quantity} {item.unit}
+                                    {item.quantity} {normalizeUnit(item.unit)}
                                 </Text>
                             ) : (
                                 <View style={styles.quantityBadge}>
-                                    <Text>{item.quantity} {item.unit}</Text>
+                                    <Text>{item.quantity} {normalizeUnit(item.unit)}</Text>
                                 </View>
                             )}
                         </View>

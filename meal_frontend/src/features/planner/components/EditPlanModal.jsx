@@ -12,6 +12,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { RecipePDF } from '../../recipes/components/RecipePDF';
+import { normalizeUnit } from '../../../utils/unitConstants';
 
 export const EditPlanModal = ({ isOpen, onClose, plan, onUpdate, onDelete }) => {
     const { user } = useAuth();
@@ -180,7 +181,7 @@ export const EditPlanModal = ({ isOpen, onClose, plan, onUpdate, onDelete }) => 
                                                 <li key={ing.id} className="flex justify-between items-baseline border-b border-[color:hsl(var(--border))]/50 last:border-0 pb-2 last:pb-0 border-dashed">
                                                     <span className="text-[color:hsl(var(--muted-foreground))] font-medium">{ing.ingredient_name}</span>
                                                     <span className="text-[color:hsl(var(--foreground))] font-bold whitespace-nowrap ml-2">
-                                                        {displayQty} <span className="font-normal text-[color:hsl(var(--muted-foreground))] text-xs">{ing.unit}</span>
+                                                        {displayQty} <span className="font-normal text-[color:hsl(var(--muted-foreground))] text-xs">{normalizeUnit(ing.unit)}</span>
                                                     </span>
                                                 </li>
                                             );

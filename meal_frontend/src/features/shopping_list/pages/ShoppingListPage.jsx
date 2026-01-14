@@ -5,6 +5,7 @@ import { useAuth } from '../../auth/context/AuthContext';
 
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { ShoppingListPDF } from '../components/ShoppingListPDF';
+import { normalizeUnit } from '../../../utils/unitConstants';
 import {
     ShoppingCartIcon,
     ArrowDownTrayIcon,
@@ -178,7 +179,7 @@ export const ShoppingListPage = () => {
                                         : 'bg-[color:hsl(var(--muted))]/50 text-[color:hsl(var(--foreground))]'
                                     }`}
                                 >
-                                    {item.quantity} {item.unit}
+                                    {item.quantity} {normalizeUnit(item.unit)}
                                 </div>
                             </div>
                         ))}

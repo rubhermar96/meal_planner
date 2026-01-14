@@ -1,5 +1,6 @@
 import React from 'react';
 import { Page, Text, View, Document, StyleSheet, Image } from '@react-pdf/renderer';
+import { normalizeUnit } from '../../../utils/unitConstants';
 
 // Paleta de colores (Hardcoded para PDF)
 const COLORS = {
@@ -202,7 +203,7 @@ export const RecipePDF = ({ recipe }) => (
                             <Text style={styles.ingredientText}>
                                 {ing.ingredient_name}{'\n'}
                                 <Text style={styles.quantityText}>
-                                    {ing.quantity} {ing.unit}
+                                    {ing.quantity} {normalizeUnit(ing.unit)}
                                 </Text>
                             </Text>
                         </View>
