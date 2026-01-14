@@ -121,6 +121,39 @@ export const EditRecipePage = () => {
         }
     };
 
+
+    const handlePaste = (e) => {
+        e.preventDefault();
+        const clipboardText = e.clipboardData.getData("text");
+        let processedText = clipboardText;
+
+        // Intentamos decodificar si detectamos encoding (ej: %20)
+        try {
+            if (clipboardText.includes("%")) {
+                processedText = decodeURIComponent(clipboardText);
+            }
+        } catch (err) {
+            // Si falla (ej: un % suelto que no es encoding), usamos el texto original
+            console.warn("Error decoding paste, using original text", err);
+        }
+
+        const start = e.target.selectionStart;
+        const end = e.target.selectionEnd;
+        const newValue =
+            instructions.substring(0, start) +
+            processedText +
+            instructions.substring(end);
+
+        setInstructions(newValue);
+
+        // Ajustamos la nueva posición del cursor (hack con timeout para que React renderice primero)
+        setTimeout(() => {
+            if (e.target) {
+                e.target.selectionStart = e.target.selectionEnd = start + processedText.length;
+            }
+        }, 0);
+    };
+
     if (loading) return (
         <div className="min-h-[60vh] flex flex-col items-center justify-center text-[color:hsl(var(--muted-foreground))] animate-pulse">
             <SparklesIcon className="w-10 h-10 mb-4 text-[color:hsl(var(--primary))]" />
@@ -222,53 +255,55 @@ export const EditRecipePage = () => {
 
                     <div className="space-y-3">
                         {ingredients.map((row, index) => (
-                            <div key={index} className="flex gap-3 items-start animate-in fade-in slide-in-from-left-2 duration-300">
+                            <div key={index} className="flex flex-col md:flex-row gap-3 items-start md:items-center animate-in fade-in slide-in-from-left-2 duration-300 p-4 md:p-0 bg-[color:hsl(var(--muted))]/20 md:bg-transparent rounded-xl md:rounded-none">
 
                                 {/* Componente Reuse (Asumo que renderiza un select/combobox) */}
-                                <div className="flex-1">
+                                <div className="flex-1 w-full md:w-auto">
                                     <IngredientSelect
                                         value={row.ingredient_id}
                                         onChange={(newId) => handleIngredientChange(index, "ingredient_id", newId)}
                                     />
                                 </div>
 
-                                <input
-                                    required
-                                    type="number"
-                                    placeholder="Cant."
-                                    value={row.quantity}
-                                    onChange={(e) => handleIngredientChange(index, "quantity", e.target.value)}
-                                    className="input w-20 text-center bg-[color:hsl(var(--background))]"
-                                />
+                                <div className="flex gap-3 w-full md:w-auto items-center">
+                                    <input
+                                        required
+                                        type="number"
+                                        placeholder="Cant."
+                                        value={row.quantity}
+                                        onChange={(e) => handleIngredientChange(index, "quantity", e.target.value)}
+                                        className="input flex-1 md:w-20 text-center bg-[color:hsl(var(--background))]"
+                                    />
 
-                                <div className="relative w-24">
-                                    <select
-                                        value={row.unit}
-                                        onChange={(e) => handleIngredientChange(index, "unit", e.target.value)}
-                                        className="input w-full bg-[color:hsl(var(--background))] appearance-none pr-8 text-sm"
-                                    >
-                                        <option value="g">g</option>
-                                        <option value="kg">kg</option>
-                                        <option value="ml">ml</option>
-                                        <option value="l">l</option>
-                                        <option value="u">unds</option>
-                                        <option value="tbsp">cda.</option>
-                                        <option value="tsp">cdta.</option>
-                                    </select>
-                                    {/* Flechita custom para el select */}
-                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[color:hsl(var(--muted-foreground))]">
-                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                                    <div className="relative flex-1 md:w-24">
+                                        <select
+                                            value={row.unit}
+                                            onChange={(e) => handleIngredientChange(index, "unit", e.target.value)}
+                                            className="input w-full bg-[color:hsl(var(--background))] appearance-none pr-8 text-sm"
+                                        >
+                                            <option value="g">g</option>
+                                            <option value="kg">kg</option>
+                                            <option value="ml">ml</option>
+                                            <option value="l">l</option>
+                                            <option value="u">unds</option>
+                                            <option value="tbsp">cda.</option>
+                                            <option value="tsp">cdta.</option>
+                                        </select>
+                                        {/* Flechita custom para el select */}
+                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[color:hsl(var(--muted-foreground))]">
+                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <button
-                                    type="button"
-                                    onClick={() => removeRow(index)}
-                                    className="p-3 text-[color:hsl(var(--muted-foreground))] hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                    title="Eliminar fila"
-                                >
-                                    <TrashIcon className="w-5 h-5" />
-                                </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => removeRow(index)}
+                                        className="p-3 text-[color:hsl(var(--muted-foreground))] hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                        title="Eliminar fila"
+                                    >
+                                        <TrashIcon className="w-5 h-5" />
+                                    </button>
+                                </div>
                             </div>
                         ))}
                         {ingredients.length === 0 && (
@@ -293,6 +328,7 @@ export const EditRecipePage = () => {
                     <label className="text-lg font-bold text-[color:hsl(var(--foreground))]">Pasos de preparación</label>
                     <textarea
                         value={instructions}
+                        onPaste={handlePaste}
                         onChange={e => setInstructions(e.target.value)}
                         placeholder="1. Cortar la cebolla...&#10;2. Sofreír..."
                         rows={8}
