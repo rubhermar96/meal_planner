@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from PIL import Image
+from PIL import Image, ImageOps
 from io import BytesIO
 from django.core.files.base import ContentFile
 from django.core.files import File
@@ -56,6 +56,9 @@ class Meal(models.Model):
                 if isinstance(self.image.file, InMemoryUploadedFile) or hasattr(self.image.file, 'name'):
                      # Basic compression logic
                     img = Image.open(self.image)
+                    # Corregir orientación basada en EXIF (móviles verticales)
+                    img = ImageOps.exif_transpose(img)
+
                     if img.mode != 'RGB':
                         img = img.convert('RGB')
                     

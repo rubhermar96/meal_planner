@@ -7,6 +7,7 @@ export const UNITS = [
     { value: 'cucharada', label: 'cucharada', aliases: ['tbsp', 'cda.', 'cda'] },
     { value: 'cucharadita', label: 'cucharadita', aliases: ['tsp', 'cdta.', 'cdta'] },
     { value: 'pizca', label: 'pizca', aliases: [] },
+    { value: 'taza', label: 'taza/s', aliases: ['cup', 'cups'] },
 ];
 
 export const normalizeUnit = (unit) => {

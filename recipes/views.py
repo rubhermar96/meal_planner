@@ -65,6 +65,7 @@ class MealViewSet(viewsets.ModelViewSet):
                     name=f"{original_meal.name}",
                     meal_type=original_meal.meal_type,
                     base_servings=original_meal.base_servings,
+                    instructions=original_meal.instructions,
                     user=request.user, # ¡Ahora es mía!
                     source_meal=original_meal
                 )
